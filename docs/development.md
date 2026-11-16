@@ -58,6 +58,11 @@ outside the application suite. Skipped native-tool coverage must be reported exp
 installed package. `.github/workflows/docs.yml` builds the documentation and uploads
 the site as a workflow artifact. Public documentation hosting is configured separately.
 
+The Linux Python jobs install KiCad 10 and its footprint/symbol libraries from the
+[official Ubuntu PPA](https://www.kicad.org/download/details/ubuntu/), and check tool
+discovery before running the suite. FreeCAD-dependent tests report skips when FreeCAD
+is unavailable; full mechanical validation requires a workstation with that tool installed.
+
 ## Code map
 
 | Where | What |

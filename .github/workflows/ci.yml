@@ -16,7 +16,7 @@ concurrency:
 jobs:
   python:
     name: Python ${{ matrix.python-version }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -27,7 +27,16 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
+      - name: Install KiCad and native libraries
+        run: |
+          sudo add-apt-repository --yes ppa:kicad/kicad-10.0-releases
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends kicad kicad-footprints kicad-symbols
       - run: python -m pip install -e ".[dev]"
+      - name: Verify native test prerequisites
+        run: |
+          kicad-cli --version
+          python -c "from wholeboard.kicad import libs; assert all(libs.locate(kind) for kind in ('footprints', 'symbols'))"
       - run: python -m pytest tests -q
 
   javascript:
