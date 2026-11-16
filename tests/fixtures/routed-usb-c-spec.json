@@ -1,0 +1,691 @@
+{
+  "name": "usb_led_3v3",
+  "board": {
+    "width_mm": 30,
+    "height_mm": 22,
+    "layers": 2,
+    "corner_radius_mm": 1,
+    "ground_pour": "GND",
+    "thickness_mm": 1.6,
+    "mounting_holes": null,
+    "planes": {}
+  },
+  "components": [
+    {
+      "ref": "J1",
+      "value": "USB_C_Power",
+      "footprint": "Connector_USB:USB_C_Receptacle_GCT_USB4125-xx-x-0190_6P_TopMnt_Horizontal",
+      "lcsc": "C2988369",
+      "description": "USB-C power-only receptacle",
+      "placement": {
+        "x_mm": 4.5,
+        "y_mm": 11.0,
+        "rotation": -90.0,
+        "locked": true,
+        "side": "top"
+      }
+    },
+    {
+      "ref": "R1",
+      "value": "5.1k",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "lcsc": "C23186",
+      "symbol": "Device:R",
+      "placement": {
+        "x_mm": 10.58,
+        "y_mm": 10.17,
+        "rotation": 0.0,
+        "locked": false,
+        "side": "top"
+      }
+    },
+    {
+      "ref": "R2",
+      "value": "5.1k",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "lcsc": "C23186",
+      "symbol": "Device:R",
+      "placement": {
+        "x_mm": 9.83,
+        "y_mm": 12.63,
+        "rotation": -90.0,
+        "locked": false,
+        "side": "top"
+      }
+    },
+    {
+      "ref": "U1",
+      "value": "AMS1117-3.3",
+      "footprint": "Package_TO_SOT_SMD:SOT-223-3_TabPin2",
+      "lcsc": "C6186",
+      "symbol": "Regulator_Linear:AMS1117-3.3",
+      "placement": {
+        "x_mm": 20.2,
+        "y_mm": 11.73,
+        "rotation": -90.0,
+        "locked": false,
+        "side": "top"
+      }
+    },
+    {
+      "ref": "C1",
+      "value": "10uF",
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "lcsc": "C15850",
+      "symbol": "Device:C",
+      "placement": {
+        "x_mm": 14.65,
+        "y_mm": 8.58,
+        "rotation": 180.0,
+        "locked": false,
+        "side": "top"
+      }
+    },
+    {
+      "ref": "C2",
+      "value": "22uF",
+      "footprint": "Capacitor_SMD:C_0805_2012Metric",
+      "lcsc": "C45783",
+      "symbol": "Device:C",
+      "placement": {
+        "x_mm": 20.2,
+        "y_mm": 18.08,
+        "rotation": -90.0,
+        "locked": false,
+        "side": "top"
+      }
+    },
+    {
+      "ref": "R3",
+      "value": "1k",
+      "footprint": "Resistor_SMD:R_0603_1608Metric",
+      "lcsc": "C21190",
+      "symbol": "Device:R",
+      "placement": {
+        "x_mm": 16.71,
+        "y_mm": 17.19,
+        "rotation": 180.0,
+        "locked": false,
+        "side": "top"
+      }
+    },
+    {
+      "ref": "D1",
+      "value": "Red",
+      "footprint": "LED_SMD:LED_0603_1608Metric",
+      "lcsc": "C2286",
+      "symbol": "Device:LED",
+      "placement": {
+        "x_mm": 14.25,
+        "y_mm": 17.98,
+        "rotation": 90.0,
+        "locked": false,
+        "side": "top"
+      }
+    },
+    {
+      "ref": "J2",
+      "value": "Header 1x4",
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical",
+      "lcsc": "C124378",
+      "placement": {
+        "x_mm": 26.0,
+        "y_mm": 7.2,
+        "rotation": 0.0,
+        "locked": true,
+        "side": "top"
+      },
+      "no_connect": [
+        "3"
+      ],
+      "symbol": "Connector:Conn_01x04_Pin"
+    }
+  ],
+  "nets": [
+    {
+      "name": "VBUS",
+      "class": "power",
+      "pins": [
+        "J1.A9",
+        "J1.B9",
+        "U1.3",
+        "C1.1",
+        "J2.1"
+      ]
+    },
+    {
+      "name": "GND",
+      "class": "power",
+      "pins": [
+        "J1.A12",
+        "J1.B12",
+        "J1.SH",
+        "R1.2",
+        "R2.2",
+        "U1.1",
+        "C1.2",
+        "C2.2",
+        "D1.1",
+        "J2.4"
+      ]
+    },
+    {
+      "name": "+3V3",
+      "class": "power",
+      "pins": [
+        "U1.2",
+        "C2.1",
+        "R3.1",
+        "J2.2"
+      ]
+    },
+    {
+      "name": "CC1",
+      "pins": [
+        "J1.A5",
+        "R1.1"
+      ],
+      "class": "signal"
+    },
+    {
+      "name": "CC2",
+      "pins": [
+        "J1.B5",
+        "R2.1"
+      ],
+      "class": "signal"
+    },
+    {
+      "name": "LED_K",
+      "pins": [
+        "R3.2",
+        "D1.2"
+      ],
+      "class": "signal"
+    }
+  ],
+  "rules": {
+    "track_mm": 0.25,
+    "power_track_mm": 0.5,
+    "clearance_mm": 0.2,
+    "via_diameter_mm": 0.6,
+    "via_drill_mm": 0.3,
+    "edge_clearance_mm": 0.3
+  },
+  "fixed_copper": [
+    {
+      "net": "CC1",
+      "tracks": [
+        {
+          "id": "a79aebb8-e9ba-4995-a0da-f06a4e0e9e7f",
+          "a": [
+            9.425,
+            10.5
+          ],
+          "b": [
+            9.755,
+            10.17
+          ],
+          "w": 0.25,
+          "layer": "F.Cu",
+          "net": "CC1"
+        },
+        {
+          "id": "b9114cf9-e6a2-4d16-baae-dec226afa251",
+          "a": [
+            7.58,
+            10.5
+          ],
+          "b": [
+            9.425,
+            10.5
+          ],
+          "w": 0.25,
+          "layer": "F.Cu",
+          "net": "CC1"
+        }
+      ],
+      "arcs": [],
+      "vias": []
+    },
+    {
+      "net": "VBUS",
+      "tracks": [
+        {
+          "id": "02f8d065-44b7-4128-a74f-b6068b2f81f4",
+          "a": [
+            7.58,
+            12.52
+          ],
+          "b": [
+            7.06,
+            12.52
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "VBUS"
+        },
+        {
+          "id": "0563bc4e-246f-4524-86be-ac381b69eaff",
+          "a": [
+            19.38,
+            7.1
+          ],
+          "b": [
+            25.16,
+            7.1
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "VBUS"
+        },
+        {
+          "id": "0ca522a8-3e62-4606-926b-10a82880eb37",
+          "a": [
+            7.86,
+            9.2
+          ],
+          "b": [
+            12.56,
+            9.2
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "VBUS"
+        },
+        {
+          "id": "0d500942-93dd-4d7c-ada3-364acfabb2ee",
+          "a": [
+            12.56,
+            9.2
+          ],
+          "b": [
+            13.155,
+            9.795
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "VBUS"
+        },
+        {
+          "id": "10ac1e1a-169e-4eb7-8139-0d90a35f2a49",
+          "a": [
+            14.385,
+            9.795
+          ],
+          "b": [
+            15.6,
+            8.58
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "VBUS"
+        },
+        {
+          "id": "17a82322-00cf-44f8-9002-169690e5c30c",
+          "a": [
+            7.06,
+            12.52
+          ],
+          "b": [
+            6.505,
+            11.965
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "VBUS"
+        },
+        {
+          "id": "1a9bc787-1625-40b0-baa8-f72ab6f34425",
+          "a": [
+            17.9,
+            8.58
+          ],
+          "b": [
+            19.38,
+            7.1
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "VBUS"
+        },
+        {
+          "id": "76187525-e0e2-4f27-8fb1-a60a35244f90",
+          "a": [
+            7.58,
+            9.48
+          ],
+          "b": [
+            7.86,
+            9.2
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "VBUS"
+        },
+        {
+          "id": "8ede1fae-cfae-43fb-aa4c-47dd5963633c",
+          "a": [
+            7.065,
+            9.48
+          ],
+          "b": [
+            7.58,
+            9.48
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "VBUS"
+        },
+        {
+          "id": "9521c111-eac8-4d80-baff-5327a8662ad6",
+          "a": [
+            13.155,
+            9.795
+          ],
+          "b": [
+            14.385,
+            9.795
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "VBUS"
+        },
+        {
+          "id": "9fb37504-07f9-4915-93a7-af71641880e5",
+          "a": [
+            6.505,
+            10.04
+          ],
+          "b": [
+            7.065,
+            9.48
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "VBUS"
+        },
+        {
+          "id": "b1edff8c-1f74-435c-85c6-b8507906f2f7",
+          "a": [
+            15.6,
+            8.58
+          ],
+          "b": [
+            17.9,
+            8.58
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "VBUS"
+        },
+        {
+          "id": "d3860a6b-fd60-4700-81a5-5c9502db98a9",
+          "a": [
+            6.505,
+            11.965
+          ],
+          "b": [
+            6.505,
+            10.04
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "VBUS"
+        },
+        {
+          "id": "d4edb7bc-5cb6-44db-b927-df397d76ccb0",
+          "a": [
+            25.16,
+            7.1
+          ],
+          "b": [
+            26.0,
+            7.2
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "VBUS"
+        }
+      ],
+      "arcs": [],
+      "vias": []
+    },
+    {
+      "net": "GND",
+      "tracks": [
+        {
+          "id": "36805883-fce9-472e-aef7-d160f8819c0b",
+          "a": [
+            22.5,
+            8.58
+          ],
+          "b": [
+            22.475,
+            8.6
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "GND"
+        }
+      ],
+      "arcs": [],
+      "vias": [
+        {
+          "id": "daeac753-9851-48c5-b3c9-be4be5ed1c1a",
+          "p": [
+            22.475,
+            8.6
+          ],
+          "d": 0.6,
+          "drill": 0.3,
+          "net": "GND",
+          "type": "through",
+          "layers": [
+            "F.Cu",
+            "B.Cu"
+          ]
+        }
+      ]
+    },
+    {
+      "net": "CC2",
+      "tracks": [
+        {
+          "id": "a88383e2-7901-4770-bc62-4e7aa41d6c15",
+          "a": [
+            7.885,
+            11.805
+          ],
+          "b": [
+            9.83,
+            11.805
+          ],
+          "w": 0.25,
+          "layer": "F.Cu",
+          "net": "CC2"
+        },
+        {
+          "id": "bb4c3be8-38c6-4288-91a9-77414551bf08",
+          "a": [
+            7.58,
+            11.5
+          ],
+          "b": [
+            7.885,
+            11.805
+          ],
+          "w": 0.25,
+          "layer": "F.Cu",
+          "net": "CC2"
+        }
+      ],
+      "arcs": [],
+      "vias": []
+    },
+    {
+      "net": "+3V3",
+      "tracks": [
+        {
+          "id": "22329003-279f-41b1-a5a9-801b2abfe2c4",
+          "a": [
+            20.2,
+            14.88
+          ],
+          "b": [
+            17.89,
+            17.19
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "+3V3"
+        },
+        {
+          "id": "29d020b1-0143-4d3c-ad30-a36d421260bf",
+          "a": [
+            20.2,
+            8.58
+          ],
+          "b": [
+            20.2,
+            14.88
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "+3V3"
+        },
+        {
+          "id": "4d21ac33-18b8-46ae-82ac-69ced21e92f5",
+          "a": [
+            17.89,
+            17.19
+          ],
+          "b": [
+            17.535,
+            17.19
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "+3V3"
+        },
+        {
+          "id": "7aa004f8-e049-4699-8fda-f0ffa2801499",
+          "a": [
+            20.2,
+            14.88
+          ],
+          "b": [
+            20.2,
+            17.13
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "+3V3"
+        },
+        {
+          "id": "ba0a219b-a107-4485-a2d2-618dd4a03da0",
+          "a": [
+            25.23,
+            10.075
+          ],
+          "b": [
+            26.0,
+            9.74
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "+3V3"
+        },
+        {
+          "id": "e0e790c1-5d52-4be3-ac67-4471fe4f928e",
+          "a": [
+            21.695,
+            10.075
+          ],
+          "b": [
+            25.23,
+            10.075
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "+3V3"
+        },
+        {
+          "id": "ff94e36f-4ba8-4ac9-a417-7992cd30b8ec",
+          "a": [
+            20.2,
+            8.58
+          ],
+          "b": [
+            21.695,
+            10.075
+          ],
+          "w": 0.5,
+          "layer": "F.Cu",
+          "net": "+3V3"
+        }
+      ],
+      "arcs": [],
+      "vias": []
+    },
+    {
+      "net": "LED_K",
+      "tracks": [
+        {
+          "id": "a4fd3222-7e3e-45b6-a554-46158e38bb53",
+          "a": [
+            15.885,
+            17.19
+          ],
+          "b": [
+            15.8825,
+            17.1925
+          ],
+          "w": 0.25,
+          "layer": "F.Cu",
+          "net": "LED_K"
+        },
+        {
+          "id": "aad22906-c3a9-4c6b-8648-3694317279b2",
+          "a": [
+            15.8825,
+            17.1925
+          ],
+          "b": [
+            14.25,
+            17.1925
+          ],
+          "w": 0.25,
+          "layer": "F.Cu",
+          "net": "LED_K"
+        }
+      ],
+      "arcs": [],
+      "vias": []
+    }
+  ],
+  "fixed_zones": [
+    {
+      "net": "GND",
+      "origin": [
+        100.0,
+        100.0
+      ],
+      "layers": [
+        "F.Cu"
+      ],
+      "source": "(zone\n\t(net \"GND\")\n\t(layer \"F.Cu\")\n\t(uuid \"e9bbb736-79d5-46d2-8716-18394e9fd09f\")\n\t(name \"tracemaker pour\")\n\t(hatch edge 0.5)\n\t(connect_pads yes\n\t\t(clearance 0.3)\n\t)\n\t(min_thickness 0.25)\n\t(fill yes\n\t\t(thermal_gap 0.5)\n\t\t(thermal_bridge_width 0.5)\n\t\t(island_removal_mode 0)\n\t)\n\t(polygon\n\t\t(pts\n\t\t\t(xy 99.5 99.5)\n\t\t\t(xy 130.5 99.5)\n\t\t\t(xy 130.5 122.5)\n\t\t\t(xy 99.5 122.5)\n\t\t)\n\t)\n)"
+    },
+    {
+      "net": "GND",
+      "origin": [
+        100.0,
+        100.0
+      ],
+      "layers": [
+        "B.Cu"
+      ],
+      "source": "(zone\n\t(net \"GND\")\n\t(layer \"B.Cu\")\n\t(uuid \"63736a23-a7fd-49a3-a0d7-b0927e420b34\")\n\t(name \"tracemaker pour\")\n\t(hatch edge 0.5)\n\t(connect_pads yes\n\t\t(clearance 0.3)\n\t)\n\t(min_thickness 0.25)\n\t(fill yes\n\t\t(thermal_gap 0.5)\n\t\t(thermal_bridge_width 0.5)\n\t\t(island_removal_mode 0)\n\t)\n\t(polygon\n\t\t(pts\n\t\t\t(xy 99.5 99.5)\n\t\t\t(xy 130.5 99.5)\n\t\t\t(xy 130.5 122.5)\n\t\t\t(xy 99.5 122.5)\n\t\t)\n\t)\n)"
+    }
+  ]
+}

@@ -80,7 +80,7 @@ def generate(p: Project) -> Path:
     story: list = []
     b = spec["board"]
     story += [Paragraph(esc(st.get("title") or spec["name"]), h1),
-              Paragraph(f"{esc(spec['name'])} · revision {rev} · {time.strftime('%Y-%m-%d')} · made with WholeBoard", small),
+              Paragraph(f"{esc(spec['name'])} · revision {rev} · {time.strftime('%Y-%m-%d')} · made with OpenFabro", small),
               Spacer(1, 4 * mm)]
     if spec.get("summary"):
         story.append(Paragraph(esc(spec["summary"]), body))
@@ -195,7 +195,7 @@ def generate(p: Project) -> Path:
 
     buf = io.BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm, topMargin=16 * mm,
-                            bottomMargin=16 * mm, title=f"{spec['name']} rev {rev}", author="WholeBoard")
+                            bottomMargin=16 * mm, title=f"{spec['name']} rev {rev}", author="OpenFabro")
     doc.build(story)
     pdf = buf.getvalue()
 

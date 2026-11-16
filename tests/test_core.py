@@ -5,7 +5,7 @@ import pytest
 
 from wholeboard import design, sexpr
 from wholeboard.jlc import parts, quote
-from wholeboard.kicad import board, geometry, libs, schematic
+from wholeboard.kicad import board, cli, geometry, libs, schematic
 
 SPEC = json.loads((Path(__file__).parent / "sample_spec.json").read_text())
 HAVE_LIBS = libs.locate("footprints") is not None
@@ -61,7 +61,10 @@ def test_schematic_sheets_and_signal_order(tmp_path):
     sub_ = (tmp_path / sch["pages"][1]["file"]).read_text()
     root = Path(sch["sch"]).read_text()
     assert "(sheet" in root and '"Sheetfile"' in root and "(sheet_instances" in root
-    assert "(global_label" in sub_ and "(sheet_instances" not in sub_
+    assert "(hierarchical_label" in sub_ and "(sheet_instances" not in sub_
+    if cli.find_kicad_cli():
+        proof=schematic.netlist_parity(spec,cli.schematic_nets(Path(sch['sch'])))
+        assert proof['ok'],proof
     links = schematic.board_links(spec)
     assert links[reg[0]][0].count("/") == 2 and links[reg[0]][1] == "/Power/"
     assert links["J1"][1] == "/"

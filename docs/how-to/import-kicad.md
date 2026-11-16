@@ -11,4 +11,4 @@ The AI then checks the design, finds JLCPCB parts for anything without an LCSC n
 not in KiCad's standard libraries, and builds it. With no AI configured, the import is built as it is.
 
 !!! tip
-    To run WholeBoard's checks on a KiCad project without importing it, use the [MCP server](mcp.md).
+    To run OpenFabro's checks on a KiCad project without importing it, use the [MCP server](mcp.md).

@@ -1,0 +1,4 @@
+export function materialUV(positions,normals,repeatMm=20,origin=[0,0,0]){
+ const result=new Float32Array(positions.length/3*2);for(let i=0;i<positions.length;i+=3){const n=[0,1,2].map(j=>Math.abs(normals[i+j])),axis=n[0]>=n[1]&&n[0]>=n[2]?0:n[1]>=n[2]?1:2,[a,b]=axis===0?[1,2]:axis===1?[0,2]:[0,1];result[i/3*2]=(positions[i+a]+origin[a])/repeatMm;result[i/3*2+1]=(positions[i+b]+origin[b])/repeatMm;}return result;
+}
+export function editMaterial(program,featureId,patch){const next=structuredClone(program),feature=featureId===null?next:next.features.find(f=>f.id===featureId);if(!feature)throw Error('The material target feature is unavailable.');if(patch===null)delete feature.material;else feature.material={...(typeof feature.material==='object'?feature.material:typeof feature.material==='string'?{preset:feature.material}:{}),...patch};return next;}

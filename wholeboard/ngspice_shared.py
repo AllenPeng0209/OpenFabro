@@ -1,8 +1,8 @@
 """Run a netlist through the ngspice shared library (e.g. the one KiCad bundles).
 
-    python -m wholeboard.ngspice_shared <libngspice path> <netlist.cir>
+    python -m openfabro.ngspice_shared <libngspice path> <netlist.cir>
 
-Runs in its own process so a crash inside the library cannot stop WholeBoard. The netlist's
+Runs in its own process so a crash inside the library cannot stop OpenFabro. The netlist's
 .control block does the analyses and writes the raw files; this only loads and sources it."""
 
 from __future__ import annotations

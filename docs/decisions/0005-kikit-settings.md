@@ -4,7 +4,7 @@
 
 ## Context
 
-Panels are drawn with KiKit. Three of its defaults broke WholeBoard boards:
+Panels are drawn with KiKit. Three of its defaults broke OpenFabro boards:
 
 - KiKit rounds inside corners to the mill radius. With its default it closed up the 1 mm mains isolation slots.
 - V-cuts drawn on `Edge.Cuts` would be milled through, not scored.
@@ -21,5 +21,5 @@ Panels are drawn with KiKit. Three of its defaults broke WholeBoard boards:
 ## Consequences
 
 - Slots survive panelisation, so mains boards can be panelled.
-- KiKit runs on KiCad's Python (installed with `uv --target` into `~/.wholeboard/kikit-py`), so it works with the
+- KiKit runs on KiCad's Python (installed with `uv --target` into `~/.openfabro/kikit-py`), so it works with the
   Docker KiCad image, which has no `pip`.

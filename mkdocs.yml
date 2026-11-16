@@ -1,13 +1,14 @@
-site_name: WholeBoard
-site_description: An AI workbench for printed circuit boards, with KiCad, TraceMaker, ngspice, JLCPCB and FreeCAD
-site_url: https://dingooz.github.io/WholeBoard/
-repo_url: https://github.com/DingoOz/WholeBoard
-repo_name: DingoOz/WholeBoard
+site_name: OpenFabro
+site_description: The open-source AI hardware engineer for circuits, enclosures and complete devices
+repo_url: https://github.com/AllenPeng0209/OpenFabro
+repo_name: AllenPeng0209/OpenFabro
 edit_uri: edit/main/docs/
-copyright: WholeBoard is free software under the GNU GPL, version 3 or later.
+copyright: OpenFabro is free software under the GNU GPL, version 3 or later.
 
 theme:
   name: material
+  logo: assets/openfabro-mascot.png
+  favicon: assets/openfabro-mascot.png
   features:
     - navigation.tabs
     - navigation.sections
@@ -29,8 +30,6 @@ theme:
       primary: green
       accent: amber
       toggle: {icon: material/weather-sunny, name: Light mode}
-  icon:
-    logo: material/chip
 
 extra_css:
   - stylesheets/extra.css
@@ -86,9 +85,28 @@ validation:
 
 not_in_nav: |
   /api/**
+  /FLUX_REMAINING_CHECKLIST.md
+  /reference/flux-*.md
+  /reference/kicad-schematic-crossings.md
+  /reference/mechanical-cad-program.md
+
+exclude_docs: |
+  /production-coordination-flux.md
+  /production-mvp-result.md
+  /reference/flux-*.png
+  /reference/flux-*.webp
+  /reference/workbench-3d.png
+  /reference/workbench-first.png
+  /reference/workbench-inspector.png
 
 nav:
   - Home: index.md
+  - Hardware workbench: workbench.md
+  - Brand and mascot: brand.md
+  - Production:
+      - Handoff workflow: production-mvp.md
+      - Supplier access: production-supplier-apis.md
+      - Implementation contract: production-mvp-contract.md
   - Tutorials:
       - tutorials/index.md
       - Your first board: tutorials/first-board.md
@@ -96,7 +114,7 @@ nav:
   - How-to guides:
       - how-to/index.md
       - Install and check the tools: how-to/install.md
-      - Start WholeBoard: how-to/start.md
+      - Start OpenFabro: how-to/start.md
       - Import a KiCad project: how-to/import-kicad.md
       - Edit the board in KiCad: how-to/kicad-edits.md
       - Exchange designs with Altium: how-to/altium.md
@@ -146,5 +164,38 @@ nav:
       - decisions/0005-kikit-settings.md
       - decisions/0006-price-tables-not-scraping.md
       - decisions/0007-worker-and-expert.md
-  - Development: development.md
+      - decisions/0010-frozen-layer-context.md
+      - decisions/0011-stacked-tool-panes.md
+      - decisions/0012-schematic-display.md
+      - decisions/0013-contextual-cad-view.md
+      - decisions/0014-cad-navigation.md
+      - decisions/0015-differential-routing.md
+      - decisions/0016-route-length-tuning.md
+      - decisions/0017-selective-native-routing.md
+      - decisions/0018-interactive-obstacle-routing.md
+      - decisions/0019-route-quality.md
+      - decisions/0020-editable-mechanical-parts.md
+      - decisions/0021-mechanical-undo.md
+      - decisions/0022-native-cad-import.md
+      - decisions/0023-mesh-assets.md
+      - decisions/0024-drawing-profiles.md
+      - decisions/0025-linked-assemblies.md
+      - decisions/0026-native-geometry-picking.md
+      - decisions/0027-constrained-sketches.md
+      - decisions/0028-part-materials.md
+      - decisions/0029-native-curvature-combs.md
+      - decisions/0030-native-surface-analysis.md
+      - decisions/0031-native-curve-events.md
+      - decisions/0032-adaptive-cad-mass.md
+      - decisions/0033-file-draft-recovery.md
+      - decisions/0034-interface-presets.md
+      - decisions/0035-physical-stackup.md
+      - decisions/0036-native-pad-holes.md
+      - decisions/0037-custom-pad-copper.md
+      - decisions/0038-layout-pad-instances.md
+      - decisions/0039-pad-override-recovery.md
+      - decisions/0039-pad-override-recovery.md
+  - Development:
+      - development.md
+      - Workbench implementation status: FLUX_PARITY.md
   - Changelog: changelog.md

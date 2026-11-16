@@ -1,18 +1,18 @@
-"""WholeBoard as an MCP server: its checks for any agent and any KiCad project, and its designer's tools for Claude Code.
+"""OpenFabro as an MCP server: its checks for any agent and any KiCad project, and its designer's tools for Claude Code.
 
-    python -m wholeboard.mcp            # speaks MCP over stdio
+    python -m openfabro.mcp            # speaks MCP over stdio
 
-Add it to Claude Code with:  claude mcp add --scope user wholeboard -- /path/to/WholeBoard/.venv/bin/python -m wholeboard.mcp
-(WholeBoard's "Design with Claude Code" screen shows the line for this computer, and can run it).
+Add it to Claude Code with:  claude mcp add --scope user openfabro -- /path/to/OpenFabro/.venv/bin/python -m openfabro.mcp
+(OpenFabro's "Design with Claude Code" screen shows the line for this computer, and can run it).
 
 Every tool takes "project": a KiCad project folder, or any .kicad_pro, .kicad_sch or .kicad_pcb file in it. The
-project is read with WholeBoard's KiCad importer (the schematic's netlist, the board's outline, layers and copper),
-so the checks work on boards WholeBoard did not design. Results are JSON text. kicad-cli is needed to read the
+project is read with OpenFabro's KiCad importer (the schematic's netlist, the board's outline, layers and copper),
+so the checks work on boards OpenFabro did not design. Results are JSON text. kicad-cli is needed to read the
 schematic, ngspice to simulate, and the internet for JLCPCB prices and stock.
 
-To design a new board with WholeBoard, call design_guide first and follow it: new_board starts the board, and the
+To design a new board with OpenFabro, call design_guide first and follow it: new_board starts the board, and the
 designer's tools (search_parts, simulate_design, submit_design, build_enclosure, finish and the rest) build it in
-WholeBoard, where the user watches it live. These need WholeBoard running on this computer (./run.sh).
+OpenFabro, where the user watches it live. These need OpenFabro running on this computer (./run.sh).
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ from .jlc import parts as jparts, quote as jquote, stock as jstock
 from .kicad import geometry, importer
 
 PROTOCOLS = ("2025-06-18", "2025-03-26", "2024-11-05")
-WORK = Path.home() / ".wholeboard" / "mcp"
+WORK = config.APP_DIR / "mcp"
 _cache: dict = {}
 _lock = threading.Lock()
 
@@ -232,7 +232,7 @@ def call(name: str, args: dict) -> dict:
     raise KeyError(name)
 
 
-# ---- designing a board: the tools run in the WholeBoard server, so its page follows the build live ----------------
+# ---- designing a board: the tools run in the OpenFabro server, so its page follows the build live ----------------
 
 BOARD = {"type": "string", "description": "The board's id (default: the board from new_board or open_board)."}
 _board: dict = {"id": None}
@@ -244,16 +244,16 @@ def _design_tools() -> list[dict]:
     from .ai import agent
     tools = [
         {"name": "design_guide",
-         "description": "How to design a board with WholeBoard: the workflow, engineering rules and the design spec "
+         "description": "How to design a board with OpenFabro: the workflow, engineering rules and the design spec "
                         "format. Read it before new_board.",
          "inputSchema": {"type": "object", "properties": {}}},
         {"name": "new_board",
-         "description": "Start a new board in WholeBoard from the user's request. Returns its id and the link where "
+         "description": "Start a new board in OpenFabro from the user's request. Returns its id and the link where "
                         "the user watches it being designed and built. The other design tools then work on it.",
          "inputSchema": {"type": "object", "properties": {"request": {"type": "string", "description":
                          "The user's description of the board, in their words."}}, "required": ["request"]}},
         {"name": "list_boards",
-         "description": "The boards in WholeBoard, newest first: id, title, status and price.",
+         "description": "The boards in OpenFabro, newest first: id, title, status and price.",
          "inputSchema": {"type": "object", "properties": {}}},
         {"name": "open_board",
          "description": "Carry on with an existing board: its status, steps, current design spec and enclosure. The "
@@ -272,7 +272,7 @@ DESIGN_NAMES = {t["name"] for t in DESIGN_TOOLS}
 
 
 def _base() -> str:
-    return (os.environ.get("WHOLEBOARD_URL") or f"http://127.0.0.1:{config.load().get('port', 8770)}").rstrip("/")
+    return (os.environ.get("OPENFABRO_URL") or os.environ.get("WHOLEBOARD_URL") or f"http://127.0.0.1:{config.load().get('port', 8770)}").rstrip("/")
 
 
 def _http(method: str, path: str, body: dict | None = None, timeout: float = 30) -> dict:
@@ -287,10 +287,10 @@ def _http(method: str, path: str, body: dict | None = None, timeout: float = 30)
             detail = json.loads(e.read()).get("detail")
         except Exception:  # noqa: BLE001
             detail = e.reason
-        raise RuntimeError(f"WholeBoard said: {detail}") from None
+        raise RuntimeError(f"OpenFabro said: {detail}") from None
     except (urllib.error.URLError, OSError) as e:
-        raise RuntimeError(f"WholeBoard is not running at {_base()} ({getattr(e, 'reason', e)}). Ask the user to "
-                           "start it (./run.sh, or run.bat on Windows), or set WHOLEBOARD_URL.") from None
+        raise RuntimeError(f"OpenFabro is not running at {_base()} ({getattr(e, 'reason', e)}). Ask the user to "
+                           "start it (./run.sh, or run.bat on Windows), or set OPENFABRO_URL.") from None
 
 
 def _waiting(fn, progress):
@@ -303,7 +303,7 @@ def _waiting(fn, progress):
         if progress is not None:
             _send({"jsonrpc": "2.0", "method": "notifications/progress", "params": {
                 "progressToken": progress, "progress": int(time.time() - start),
-                "message": f"WholeBoard is still working ({int(time.time() - start)} s)"}})
+                "message": f"OpenFabro is still working ({int(time.time() - start)} s)"}})
     ok, val = box["out"]
     if not ok:
         raise val
@@ -318,10 +318,10 @@ def _try(fn):
 
 
 def _lan(r: dict) -> dict:
-    """The board's links from other machines on the LAN, when WholeBoard listens there."""
+    """The board's links from other machines on the LAN, when OpenFabro listens there."""
     if not r.get("lan_urls"):
         return {}
-    return {"lan_urls": r["lan_urls"], "lan_note": "The url works only on the computer running WholeBoard. If the user "
+    return {"lan_urls": r["lan_urls"], "lan_note": "The url works only on the computer running OpenFabro. If the user "
             "is on another machine (an SSH session, a laptop), give them a lan_urls link instead."}
 
 
@@ -335,7 +335,7 @@ def _brief(state: dict, title: str, url: str) -> dict:
 
 
 def design_call(name: str, args: dict, progress=None) -> list[dict]:
-    """A design tool: answered here (guide, boards) or run in the WholeBoard server. Returns MCP content blocks."""
+    """A design tool: answered here (guide, boards) or run in the OpenFabro server. Returns MCP content blocks."""
     from .ai import agent
     if name == "design_guide":
         return [{"type": "text", "text": agent.guide()}]
@@ -360,7 +360,7 @@ def design_call(name: str, args: dict, progress=None) -> list[dict]:
                  progress)
     text = r.get("text") if isinstance(r.get("text"), str) else json.dumps(r.get("text"), default=str)
     if r.get("user_messages"):
-        text += "\n\nuser_messages (typed in WholeBoard's chat): " + json.dumps(r["user_messages"])
+        text += "\n\nuser_messages (typed in OpenFabro's chat): " + json.dumps(r["user_messages"])
     content = [{"type": "text", "text": text}]
     for img in r.get("images") or []:
         content.append({"type": "image", "data": img["data"], "mimeType": img.get("media_type", "image/png")})
@@ -376,13 +376,13 @@ def _send(msg: dict) -> None:
         _STDOUT.flush()
 
 
-# ---------------------------------------------------------------- adding it to Claude Code (for WholeBoard's page)
+# ---------------------------------------------------------------- adding it to Claude Code (for OpenFabro's page)
 def add_command(port: int | None = None) -> list[str]:
-    """`claude mcp add` for this WholeBoard: its own Python, and its port when that is not the configured one."""
-    argv = ["claude", "mcp", "add", "--scope", "user", "wholeboard"]
+    """`claude mcp add` for this OpenFabro: its own Python, and its port when that is not the configured one."""
+    argv = ["claude", "mcp", "add", "--scope", "user", "openfabro"]
     if port and port != int(config.load().get("port", 8770)):
-        argv += ["-e", f"WHOLEBOARD_URL=http://127.0.0.1:{port}"]
-    return argv + ["--", sys.executable, "-m", "wholeboard.mcp"]
+        argv += ["-e", f"OPENFABRO_URL=http://127.0.0.1:{port}"]
+    return argv + ["--", sys.executable, "-m", "openfabro.mcp"]
 
 
 def shell_line(argv: list[str]) -> str:
@@ -397,7 +397,7 @@ def added() -> bool:
         return False
     scopes = [cfg.get("mcpServers") or {}] + [p.get("mcpServers") or {} for p in (cfg.get("projects") or {}).values()
                                                if isinstance(p, dict)]
-    return any("wholeboard.mcp" in (s.get("args") or []) for servers in scopes for s in servers.values()
+    return any(any(module in (s.get("args") or []) for module in ("openfabro.mcp", "wholeboard.mcp")) for servers in scopes for s in servers.values()
                if isinstance(s, dict))
 
 
@@ -413,7 +413,7 @@ def handle(msg: dict) -> dict | None:
         want = params.get("protocolVersion")
         return ok({"protocolVersion": want if want in PROTOCOLS else PROTOCOLS[0],
                    "capabilities": {"tools": {"listChanged": False}},
-                   "serverInfo": {"name": "wholeboard", "version": "1.0"},
+                   "serverInfo": {"name": "openfabro", "version": "1.0"},
                    "instructions": __doc__.split("\n\n", 2)[2].strip()})
     if method == "ping":
         return ok({})

@@ -1,8 +1,8 @@
-"""Check WholeBoard's dependencies and install the ones that need no administrator rights.
+"""Check OpenFabro's dependencies and install the ones that need no administrator rights.
 
-    python -m wholeboard.doctor                 # show what is installed and what is missing
-    python -m wholeboard.doctor --install       # also install TraceMaker, FreeCAD, ngspice and KiCad libraries
-    python -m wholeboard.doctor --install tracemaker freecad ngspice libs platformio kikit
+    python -m openfabro.doctor                 # show what is installed and what is missing
+    python -m openfabro.doctor --install       # also install TraceMaker, FreeCAD, ngspice and KiCad libraries
+    python -m openfabro.doctor --install tracemaker freecad ngspice libs platformio kikit
 
 The install.sh / install.ps1 scripts install the system packages (Python, KiCad, compilers) and then
 run this. Everything installed here goes under ~/.wholeboard/tools.
@@ -26,20 +26,20 @@ from pathlib import Path
 from . import config, enclosure, ngspice, router
 from .kicad import cli, libs
 
-TOOLS = Path(os.environ.get("WHOLEBOARD_HOME", Path.home() / ".wholeboard")) / "tools"
+TOOLS = config.APP_DIR / "tools"
 TM_DIR = TOOLS / "tracemaker"
 TM_REPO = "DingoOz/TraceMaker"
 
 
 def _get_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": "WholeBoard"})
+    req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": "OpenFabro"})
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.load(r)
 
 
 def _download(url: str, dest: Path, log=print) -> str:
     h = hashlib.sha256()
-    req = urllib.request.Request(url, headers={"User-Agent": "WholeBoard"})
+    req = urllib.request.Request(url, headers={"User-Agent": "OpenFabro"})
     with urllib.request.urlopen(req, timeout=60) as r, open(dest, "wb") as f:
         while chunk := r.read(1 << 20):
             f.write(chunk)
@@ -130,7 +130,7 @@ def _tracemaker_source(log) -> bool:
 
 
 def _tracemaker_wsl(log) -> bool:
-    """Windows: TraceMaker runs inside WSL. Install the Linux release there and point WholeBoard at it."""
+    """Windows: TraceMaker runs inside WSL. Install the Linux release there and point OpenFabro at it."""
     if not shutil.which("wsl"):
         raise RuntimeError("TraceMaker needs WSL on Windows. In an administrator PowerShell run "
                            "'wsl --install -d Ubuntu-24.04', restart, then run install.bat again.")
@@ -214,19 +214,19 @@ def check() -> list[tuple[str, bool, str, str]]:
     st = libs.status(cfg)
     rows.append(("KiCad libraries", st["footprints"] > 0,
                  f"{st['footprints']} footprints" if st["footprints"] else "not found",
-                 "python -m wholeboard.doctor --install libs"))
+                 "python -m openfabro.doctor --install libs"))
     tm = router.find("tracemaker", cfg)
     tv = router.version(cfg) if tm else None
     rows.append(("TraceMaker", bool(tv), f"{tv} · {tm}" if tv else "not found",
-                 "python -m wholeboard.doctor --install tracemaker"))
+                 "python -m openfabro.doctor --install tracemaker"))
     fc = enclosure.find_freecad(cfg)
     fv = enclosure.freecad_version(fc) if fc else None
     rows.append(("FreeCAD", bool(fv), f"{fv} · {fc[0]}" if fv else "not found (needed for enclosures)",
-                 "python -m wholeboard.doctor --install freecad"))
+                 "python -m openfabro.doctor --install freecad"))
     ng = ngspice.find(cfg)
     nv = ngspice.version(ng) if ng else None
     rows.append(("ngspice", bool(nv), f"{nv} · {ngspice.label(ng)}" if nv else "not found (needed for simulation)",
-                 "python -m wholeboard.doctor --install ngspice"))
+                 "python -m openfabro.doctor --install ngspice"))
     from . import models3d
     m3 = models3d.mode(cfg)
     dirs = models3d._system_dirs()
@@ -238,24 +238,24 @@ def check() -> list[tuple[str, bool, str, str]]:
     from .kicad import panelize
     kk = panelize.command()
     rows.append(("KiKit", bool(kk), ("kikit · " + ("Docker image" if kk[0] == "docker" else kk[0])) if kk else
-                 "not found (optional: draws panels)", "python -m wholeboard.doctor --install kikit"))
+                 "not found (optional: draws panels)", "python -m openfabro.doctor --install kikit"))
     from . import fwbuild
     pio = fwbuild.find(cfg)
     pv = fwbuild.version(pio) if pio else None
     rows.append(("PlatformIO", bool(pv), f"PlatformIO {pv}" if pv else "not found (optional: compiles the starter firmware)",
-                 "python -m wholeboard.doctor --install platformio"))
+                 "python -m openfabro.doctor --install platformio"))
     ai = cfg["ai"]
     if ai["provider"] == "anthropic":
         ok = bool(ai["anthropic_api_key"] or os.environ.get("ANTHROPIC_API_KEY"))
         detail = f"Claude {ai['anthropic_model']}" + ("" if ok else ": no API key yet")
     else:
         ok, detail = bool(ai["openai_base_url"]), f"{ai['openai_model']} @ {ai['openai_base_url']}"
-    rows.append(("AI", ok, detail, "Open Settings in WholeBoard and follow 'How to get an API key'."))
+    rows.append(("AI", ok, detail, "Open Settings in OpenFabro and follow 'How to get an API key'."))
     return rows
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(prog="python -m wholeboard.doctor", description=__doc__.split("\n")[0])
+    ap = argparse.ArgumentParser(prog="python -m openfabro.doctor", description=__doc__.split("\n")[0])
     ap.add_argument("--install", nargs="*", metavar="WHAT",
                     help="install missing tools: tracemaker, freecad, ngspice, libs, platformio, kikit "
                          "(default: all but platformio)")
@@ -287,7 +287,7 @@ def main(argv: list[str] | None = None) -> int:
         print()
     rows = check()
     width = max(len(r[0]) for r in rows)
-    print("WholeBoard dependencies")
+    print("OpenFabro dependencies")
     for name, ok, detail, fix in rows:
         print(f"  {'✓' if ok else '✗'} {name.ljust(width)}  {detail}")
         if not ok:

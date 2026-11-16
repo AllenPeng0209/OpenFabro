@@ -3,7 +3,7 @@
 Short recipes for one job each.
 
 - [Install and check the tools](install.md)
-- [Start WholeBoard](start.md), including from another computer
+- [Start OpenFabro](start.md), including from another computer
 - [Import a KiCad project](import-kicad.md)
 - [Edit the board in KiCad](kicad-edits.md) and keep your changes
 - [Exchange designs with Altium](altium.md)

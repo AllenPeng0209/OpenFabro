@@ -65,7 +65,7 @@ def text(layers: int, thickness_mm: float = 1.6, edge_clearance_mm: float | None
          f"(constraint text_thickness (min {_mm(L['min_text_thickness'])}))", '"?.Silkscreen"'),
     ]
     lines = [f"# JLCPCB manufacturing limits for a {layers}-layer, {thickness_mm:g} mm board.",
-             "# Written by WholeBoard from wholeboard/jlc/capabilities.json; edit that file, not this one.",
+             "# Written by OpenFabro from wholeboard/jlc/capabilities.json; edit that file, not this one.",
              "(version 1)"]
     for name, cond, constraint, layer in rules:
         lines.append(f'(rule "JLCPCB: {name}"')
@@ -80,10 +80,12 @@ def text(layers: int, thickness_mm: float = 1.6, edge_clearance_mm: float | None
 def write(spec: dict, out_dir: Path) -> Path:
     b = spec["board"]
     path = out_dir / f"{spec['name']}.kicad_dru"
-    from .. import mains
+    from .. import mains,buses
     body = text(int(b["layers"]), float(b.get("thickness_mm") or 1.6), (spec.get("rules") or {}).get("edge_clearance_mm"))
-    extra = mains.dru_rules(spec)
+    extra = mains.dru_rules(spec)+buses.native_rules(spec)
     path.write_text(body + ("\n".join(extra) + "\n" if extra else ""), encoding="utf-8")
+    compiled=buses.compile(spec)
+    if compiled['pins']:(out_dir/f"{spec['name']}.buses.json").write_text(json.dumps(compiled,ensure_ascii=False,indent=2))
     return path
 
 

@@ -8,15 +8,25 @@ import platform
 import threading
 from pathlib import Path
 
-APP_DIR = Path(os.environ.get("WHOLEBOARD_HOME", Path.home() / ".wholeboard"))
+_NEW_APP_DIR = Path.home() / ".openfabro"
+_LEGACY_APP_DIR = Path.home() / ".wholeboard"
+_DEFAULT_APP_DIR = (
+    _NEW_APP_DIR
+    if (_NEW_APP_DIR / "config.json").exists() or not _LEGACY_APP_DIR.exists()
+    else _LEGACY_APP_DIR
+)
+APP_DIR = Path(os.environ.get("OPENFABRO_HOME") or os.environ.get("WHOLEBOARD_HOME") or _DEFAULT_APP_DIR).expanduser()
 CONFIG_FILE = APP_DIR / "config.json"
-DEFAULT_PROJECTS = Path.home() / "WholeBoardProjects"
+_NEW_PROJECTS = Path.home() / "OpenFabroProjects"
+_LEGACY_PROJECTS = Path.home() / "WholeBoardProjects"
+DEFAULT_PROJECTS = _NEW_PROJECTS if _NEW_PROJECTS.exists() or not _LEGACY_PROJECTS.exists() else _LEGACY_PROJECTS
 
 DEFAULTS: dict = {
     "ai": {
         # provider: "anthropic" (Claude, cloud) or "openai" (any OpenAI-compatible server:
         # OpenAI, Ollama, LM Studio, llama.cpp, vLLM, OpenRouter ...)
         "provider": "anthropic",
+        "codex_model": "",             # local signed-in Codex CLI; empty = the user's Codex preference
         "anthropic_api_key": "",
         "anthropic_model": "claude-opus-5-5",
         "anthropic_effort": "high",

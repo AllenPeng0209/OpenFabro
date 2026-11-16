@@ -1,6 +1,6 @@
 # Heat on the board and in the box
 
-WholeBoard has two heat models that work together.
+OpenFabro has two heat models that work together.
 
 ## On the board: a plate in the browser
 

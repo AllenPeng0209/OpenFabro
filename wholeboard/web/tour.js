@@ -1,5 +1,5 @@
 "use strict";
-// "Take a tour": walks through a normal WholeBoard workflow, highlighting each part of the page in turn.
+// "Take a tour": walks through a normal OpenFabro workflow, highlighting each part of the page in turn.
 // Steps that need a board open one of yours (a finished one if there is one); without any, they are skipped.
 
 const TOUR = [
@@ -10,7 +10,7 @@ const TOUR = [
   { sel: "label[for=importFile]", title: "Bring an existing KiCad project", home: true,
     text: "Import a .kicad_sch and .kicad_pcb (or a zip) to check, simulate, re-route and quote a design you already have." },
   { sel: "#statusChips", title: "Your tools", home: true,
-    text: "WholeBoard drives KiCad, the TraceMaker autorouter, ngspice and FreeCAD. When they are all found this reads Workbench ready (click it for the list); a missing tool shows in red. The last chip is the AI model doing the design." },
+    text: "OpenFabro drives KiCad, the TraceMaker autorouter, ngspice and FreeCAD. When they are all found this reads Workbench ready (click it for the list); a missing tool shows in red. The last chip is the AI model doing the design." },
   { sel: "#settingsBtn", title: "Settings", home: true,
     text: "Choose the AI (Claude, or any OpenAI-compatible model, local ones included), an optional expert model to plan and review, your JLCPCB options, tools and network access." },
   { sel: "#projectList", title: "Your boards", home: true,

@@ -1,0 +1,17 @@
+# Preserve native CAD fixtures byte-for-byte, including exporter whitespace.
+*.step -text -whitespace
+*.stp -text -whitespace
+*.brep -text -whitespace
+*.igs -text -whitespace
+*.iges -text -whitespace
+
+# Keep upstream browser bundles unmodified when checking whitespace.
+wholeboard/web/vendor/* -whitespace
+
+# Binary assets
+*.png binary
+*.webp binary
+*.jpg binary
+*.ttf binary
+*.woff2 binary
+*.mp4 binary

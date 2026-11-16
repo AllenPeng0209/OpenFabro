@@ -113,6 +113,27 @@ def _record(p: Project, res: dict, started: float) -> None:
         revisions.record(p, int(p.state.get("revision", 0)), res, started)
     except Exception as e:  # noqa: BLE001 - history is a convenience, never fail a build over it
         p.log("netlist", f"Could not save the revision summary: {e}")
+    if "workbench" in p.state:
+        from .workbench import _write_spec
+        pcb = Path((p.state.get("artifacts") or {}).get("pcb") or "")
+        fresh = bool(res.get("ok") and pcb.is_file())
+        if fresh:
+            from .workbench_native import _adopt_geometry
+            _adopt_geometry(p, geometry.read(pcb), copper=True)
+        else:
+            p.state["workbench"]["version"] = p.state["workbench"].get("version", 0) + 1
+        p.state["workbench"].update(checks_stale=not fresh, saved_at=time.time(), build_revision=p.state.get("revision", 0))
+        visuals = p.state.get("visuals") or {}
+        simulated = visuals.get("sim:sim") or {}
+        if simulated.get("plot"):
+            p.state["workbench_simulation"] = {"version": p.state["workbench"]["version"],
+                "url": simulated["plot"], "result": simulated.get("result"),
+                "ran": simulated.get("result", {}).get("ran"), "ok": simulated.get("result", {}).get("ok")}
+        enc = visuals.get("enclosure:enclosure")
+        if enc and fresh:
+            p.state["workbench_enclosure"] = {"version": p.state["workbench"]["version"], **enc}
+        _write_spec(p)
+        p.save()
 
 
 def _kicad_edits(p: Project, spec: dict) -> tuple[dict, dict | None]:
@@ -188,6 +209,7 @@ def _build(p: Project, spec: dict, view_origin: str | None = None) -> dict:
 
     # ---- 2. schematic
     p.step("schematic", "running", "Drawing the schematic")
+    needs_parity=bool(spec.get('editor',{}).get('connection_guides')) or len(schematic.sheets(spec))>1 or any(c.get('terminal') for c in spec['components'])
     try:
         sch = schematic.build(spec, rdir)
         svg_dir = rdir / "schematic-svg"
@@ -204,6 +226,8 @@ def _build(p: Project, spec: dict, view_origin: str | None = None) -> dict:
         if pages:
             p.visual("schematic", "svg", "Schematic" + (f", {len(pages)} sheets" if len(pages) > 1 else ""),
                      url=pages[0]["url"], pages=pages if len(pages) > 1 else None)
+        if needs_parity:
+            result["schematic_parity"]=schematic.netlist_parity(spec,cli.schematic_nets(Path(sch["sch"])))
         erc = None
         try:
             erc = cli.erc(Path(sch["sch"]))
@@ -217,6 +241,8 @@ def _build(p: Project, spec: dict, view_origin: str | None = None) -> dict:
             p.step("schematic", "done", ("ERC clean. " if erc else "") + "; ".join(sch["notes"])[:200])
     except Exception as e:  # noqa: BLE001 - the schematic is a view; the board can still be built
         p.step("schematic", "warn", f"Schematic not drawn: {e}")
+    if needs_parity and not result.get("schematic_parity",{}).get("ok"):
+        return {**result,"ok":False,"stage":"schematic","errors":["The exported schematic wire netlist could not be verified against the saved connections."]}
     _check(p)
 
     # ---- 2b. circuit simulation
@@ -377,7 +403,7 @@ def _build(p: Project, spec: dict, view_origin: str | None = None) -> dict:
     except Exception as e:  # noqa: BLE001
         bc = None
         p.log("drc", f"Board checks did not run: {e}")
-    if spec.get("impedance"):
+    if impedance.groups(spec):
         try:
             imp = impedance.check(spec, geometry.read(final))
             p.visual("drc", "impedance", "Controlled-impedance traces", report=imp)
@@ -386,6 +412,14 @@ def _build(p: Project, spec: dict, view_origin: str | None = None) -> dict:
                 p.log("drc", w)
         except Exception as e:  # noqa: BLE001
             p.log("drc", f"Impedance check did not run: {e}")
+    from . import buses
+    if any(c.get('pin_properties') for c in spec.get('components',[])):
+        try:
+            bus_report=buses.analyze(spec,geometry.read(final));result['buses']=bus_report
+            for row in [*bus_report['pairs'],*bus_report['buses']]:
+                for finding in row['violations']+row['unknown']:p.log('drc',finding)
+            p.visual('drc','buses','Terminal bus constraints',report=bus_report)
+        except Exception as error:p.log('drc',f'Bus timing did not run: {error}')
     if mains.config(spec):
         try:
             ms = mains.check(spec, geometry.read(final))
@@ -690,17 +724,20 @@ def run_case(p: Project, spec: dict, pcb: Path | None = None) -> dict:
 
 def run_quote(p: Project, spec: dict, opts: dict | None = None) -> dict:
     opts = {**config.load()["jlcpcb"], **(opts or {})}
-    p.step("quote", "running", "Pricing at JLCPCB")
+    _check(p)
+    p.step("quote", "running", "Estimating manufacturing cost")
     try:
         q = jquote.full_quote(spec, opts, log=lambda s: p.log("quote", s), geo=_final_geo(p))
     except Exception as e:  # noqa: BLE001
         p.step("quote", "error", str(e))
         return {"error": str(e)}
+    _check(p)
     if q.get("components"):
         try:
             q["savings"] = jsavings.find(q, spec, log=lambda s: p.log("quote", s))
         except Exception as e:  # noqa: BLE001
             p.log("quote", f"Cheaper-part search failed: {e}")
+    _check(p)
     if q.get("components"):
         try:
             q["suppliers"] = jsuppliers.prices(spec, q, config.load(), log=lambda s: p.log("quote", s))
@@ -710,10 +747,16 @@ def run_quote(p: Project, spec: dict, opts: dict | None = None) -> dict:
         q["fabs"] = jfabs.compare(design.normalise(spec), q)
     except Exception as e:  # noqa: BLE001
         p.log("quote", f"Other fabs not compared: {e}")
+    _check(p)
+    q.update(quoted_at=time.time(), source_version=(p.state.get("workbench") or {}).get("version", 0), build_revision=p.state.get("revision", 0))
+    rev = p.state.get("revision", 0)
+    folder = p.root / f"rev{rev}"
+    folder.mkdir(parents=True, exist_ok=True)
+    temporary = folder / "quote.json.tmp"
+    temporary.write_text(json.dumps(q, indent=1))
+    temporary.replace(folder / "quote.json")
     p.state["quote"] = q
     p.save()
-    rev = p.state.get("revision", 0)
-    (p.root / f"rev{rev}" / "quote.json").write_text(json.dumps(q, indent=1))
     summary = p.root / f"rev{rev}" / "summary.json"
     if summary.exists():
         try:
@@ -722,7 +765,7 @@ def run_quote(p: Project, spec: dict, opts: dict | None = None) -> dict:
             summary.write_text(json.dumps(sm, indent=1))
         except (OSError, ValueError):
             pass
-    p.visual("quote", "quote", "JLCPCB quote", quote=q, options=opts)
+    p.visual("quote", "quote", "Manufacturing estimate", quote=q, options=opts)
     sv = q.get("savings") or {}
     p.step("quote", "done", f"${q['total']:.2f} total" + (f", ${sv['total_saving']:.2f} to save" if sv.get("total_saving") else ""))
     short = [l for l in (q.get("components") or {}).get("lines", []) if l["status"] != "ok"]
@@ -752,7 +795,7 @@ def run_panel(p: Project, spec: dict, nx: int, ny: int) -> dict:
     if not pcb or not pcb.exists():
         return {"ok": False, "errors": ["Build the board first; the panel is made from the finished board."]}
     if not panelize.available():
-        return {"ok": False, "errors": ["KiKit is not installed: run python -m wholeboard.doctor --install kikit"]}
+        return {"ok": False, "errors": ["KiKit is not installed: run python -m openfabro.doctor --install kikit"]}
     spec = design.normalise(spec)
     b, name = spec["board"], spec["name"]
     vcut = float(b.get("corner_radius_mm") or 0) <= 0.3 and not b.get("outline")
@@ -891,7 +934,7 @@ def _simlab_inputs(p: Project) -> tuple[dict, dict, dict, Path, dict | None]:
 
 
 def _box(p: Project, spec: dict, geo: dict) -> dict | None:
-    """The enclosure around the board: the printed one, the stock case, or the one WholeBoard would suggest."""
+    """The enclosure around the board: the printed one, the stock case, or the one OpenFabro would suggest."""
     try:
         return boxheat.geometry(design.normalise(spec), geo, p.state.get("enclosure_spec"), config.load())
     except Exception as e:  # noqa: BLE001 - the Sim Lab works without a box

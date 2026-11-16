@@ -65,6 +65,7 @@ main { flex: 1; min-width: 0; display: flex; }
 
 .home { flex: 1; overflow: auto; padding: 48px 32px; display: flex; flex-direction: column; align-items: center; gap: 28px; }
 .hero { max-width: 860px; width: 100%; }
+.hero-mascot { display: block; object-fit: contain; margin: 0 0 12px; }
 .hero h1 { font-size: 30px; line-height: 1.2; margin: 0 0 10px; }
 .hero p { color: var(--muted); margin: 0 0 20px; font-size: 15px; }
 .prompt { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; box-shadow: var(--shadow); }

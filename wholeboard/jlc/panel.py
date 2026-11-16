@@ -1,6 +1,6 @@
 """Panels for small boards: price several copies on one panel against single boards.
 
-WholeBoard does not draw the panel. JLCPCB's "Panel by JLCPCB" option builds it from the single
+OpenFabro does not draw the panel. JLCPCB's "Panel by JLCPCB" option builds it from the single
 board's Gerbers, so the recommendation is the settings to choose there: columns × rows, edge rails,
 and V-cut (straight edges) or tab routing with mouse bites (rounded corners or odd outlines).
 """

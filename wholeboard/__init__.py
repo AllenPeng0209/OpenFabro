@@ -1,3 +1,3 @@
-"""WholeBoard: an AI workbench that turns a description into a JLCPCB-ready KiCad board."""
+"""OpenFabro: the open-source AI hardware engineer for circuits, enclosures and complete devices."""
 
 __version__ = "0.1.0"

@@ -1,7 +1,7 @@
 """Find KiCad's footprint and symbol libraries, search them and read footprints.
 
 Order of search: the path in settings, KiCad's environment variables, the usual
-install folders on Linux, macOS and Windows, then WholeBoard's own copy
+install folders on Linux, macOS and Windows, then OpenFabro's own copy
 (fetched from the KiCad Docker image or from KiCad's GitLab release archive).
 """
 
@@ -267,13 +267,20 @@ def footprint_path(lib_id: str) -> Path | None:
     return p if p.exists() else None
 
 
-def load_footprint(lib_id: str) -> Footprint | None:
-    if lib_id in _FP_CACHE:
-        return _FP_CACHE[lib_id]
-    path = footprint_path(lib_id)
-    if not path:
+def load_footprint(lib_id: str, spec: dict | None = None) -> Footprint | None:
+    if not isinstance(lib_id,str) or not re.fullmatch(r"[^/\\:]+:[^/\\]+",lib_id):
         return None
-    node = sexpr.parse(path.read_text(encoding="utf-8"))
+    custom=lib_id.startswith("Project:")
+    if custom:
+        from ..project_library import footprint_node
+        node=footprint_node(spec,lib_id)
+        if node is None:return None
+    elif lib_id in _FP_CACHE:
+        return _FP_CACHE[lib_id]
+    else:
+        path = footprint_path(lib_id)
+        if not path:return None
+        node = sexpr.parse(path.read_text(encoding="utf-8"))
     pads: list[Pad] = []
     for p in find_all(node, "pad"):
         name = p[1] if len(p) > 1 and isinstance(p[1], str) else ""
@@ -285,11 +292,20 @@ def load_footprint(lib_id: str) -> Footprint | None:
         d = 0.0
         if drill:
             vals = [num(v) for v in drill[1:] if not isinstance(v, list) and str(v) != "oval"]
-            d = vals[0] if vals else 0.0
+            d = min(vals) if vals else 0.0
+        offset=find(drill,'offset') if drill else None
+        angle=num(at[3]) if len(at)>3 else 0.0
+        u,v=(num(offset[1]),num(offset[2])) if offset else (0,0);custom=None
+        if str(p[3])=='custom':
+            from .. import pad_shapes
+            try:custom=pad_shapes.native_geometry(p)
+            except ValueError:pass
+            if custom:u+=custom['source_center_mm'][0];v+=custom['source_center_mm'][1]
+        a=math.radians(angle);shift=(u*math.cos(a)+v*math.sin(a),-u*math.sin(a)+v*math.cos(a))
         pads.append(Pad(
             name=str(name), kind=str(p[2]), shape=str(p[3]),
-            x=num(at[1]), y=num(at[2]), angle=num(at[3]) if len(at) > 3 else 0.0,
-            w=num(size[1]), h=num(size[2]), drill=d, layers=[str(x) for x in layers[1:]],
+            x=num(at[1])+shift[0], y=num(at[2])+shift[1], angle=angle,
+            w=custom['width_mm'] if custom else num(size[1]), h=custom['height_mm'] if custom else num(size[2]), drill=d, layers=[str(x) for x in layers[1:]],
             rratio=num(rr[1]) if rr else 0.25 if str(p[3]) == "roundrect" else 0.0,
         ))
     xs: list[float] = []
@@ -317,7 +333,7 @@ def load_footprint(lib_id: str) -> Footprint | None:
     smd = bool(attr and Sym_in(attr, "smd")) or all(p.kind == "smd" for p in pads if p.kind != "np_thru_hole")
     descr = find(node, "descr")
     fp = Footprint(lib_id, node, pads, court, smd, str(descr[1]) if descr else "")
-    _FP_CACHE[lib_id] = fp
+    if not custom:_FP_CACHE[lib_id] = fp
     return fp
 
 

@@ -28,7 +28,7 @@ import sys
 import time
 from pathlib import Path
 
-from . import models3d
+from . import config, models3d
 
 SPEC_DOC = """{
   "wall_mm": 2.0, "floor_mm": 1.6, "lid_mm": 1.6,
@@ -200,6 +200,8 @@ def context(geo: dict, spec: dict, part_heights: dict | None = None) -> dict:
         if info["kind"] == "none":
             continue
         source = "estimate" if info["estimated"] else "datasheet"
+        if not info["estimated"] and f["ref"] not in (part_heights or {}) and comps.get(f["ref"],{}).get("height_source")=="project-library":
+            source="project-library"
         if info["estimated"]:
             mh, msrc = models3d.part_height(f, comps.get(f["ref"], {}).get("lcsc"))
             if mh is not None:
@@ -627,7 +629,7 @@ def resolve(ctx: dict, enc: dict) -> dict:
 
 
 # ----------------------------------------------------------------------------------- FreeCAD
-TOOLS_DIR = Path(os.environ.get("WHOLEBOARD_HOME", Path.home() / ".wholeboard")) / "tools" / "freecad"
+TOOLS_DIR = config.APP_DIR / "tools" / "freecad"
 
 
 def find_freecad(cfg: dict | None = None) -> list[str] | None:
@@ -721,7 +723,7 @@ def run_freecad(job: dict, out_dir: Path, name: str, cfg: dict | None = None, lo
     script = Path(__file__).with_name("freecad_enclosure.py")
     # The same build as a FreeCAD macro with the job built in, to open and tweak in FreeCAD.
     (out_dir / f"{name}-enclosure.FCMacro").write_text(
-        "# WholeBoard enclosure. Run this macro in FreeCAD to rebuild the parts; edit JOB to change them.\n"
+        "# OpenFabro enclosure. Run this macro in FreeCAD to rebuild the parts; edit JOB to change them.\n"
         "import json as _json\nJOB = _json.loads(" + repr(json.dumps(job)) + ")\n\n" + script.read_text())
     report_file = out_dir / "enclosure-report.json"
     report_file.unlink(missing_ok=True)

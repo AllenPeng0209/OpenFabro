@@ -25,8 +25,8 @@ def _candidates(name: str) -> list[Path]:
     out = [_SIBLING / sub / name,
            Path.home() / "TraceMaker" / "build" / "release" / "src" / sub / name,
            Path("/opt/tracemaker/bin") / name, Path("/usr/local/bin") / name]
-    # Installed by `python -m wholeboard.doctor --install tracemaker`.
-    tools = Path(os.environ.get("WHOLEBOARD_HOME", Path.home() / ".wholeboard")) / "tools" / "tracemaker"
+    # Installed by `python -m openfabro.doctor --install tracemaker`.
+    tools = config.APP_DIR / "tools" / "tracemaker"
     out.append(tools / "current" / "bin" / name)
     for preset in ("release", "cpu-only", "macos-metal", "macos-cpu"):
         out.append(tools / "src" / "build" / preset / "src" / sub / name)
@@ -197,8 +197,8 @@ _VIEW_TOKEN: str | None = None
 
 
 def lan_mode() -> bool:
-    """True when WholeBoard listens on the network rather than this machine only."""
-    host = os.environ.get("WHOLEBOARD_HOST", "127.0.0.1")
+    """True when OpenFabro listens on the network rather than this machine only."""
+    host = os.environ.get("OPENFABRO_HOST") or os.environ.get("WHOLEBOARD_HOST", "127.0.0.1")
     return host not in ("127.0.0.1", "localhost", "::1")
 
 
@@ -235,7 +235,7 @@ def route(pcb_in: Path, pcb_out: Path, log=print, cancel=None, seconds: float | 
         args += ["--view", "--no-freeze", "--view-port", str(view_port)]
         token = viewer_token()
         if token and embed_origin:
-            # Other machines open WholeBoard by this machine's address, whichever one they used.
+            # Other machines open OpenFabro by this machine's address, whichever one they used.
             port = embed_origin.rsplit(":", 1)[-1]
             if port.isdigit():
                 embed_origin += f" http://*:{port}"

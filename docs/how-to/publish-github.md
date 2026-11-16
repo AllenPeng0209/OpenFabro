@@ -1,29 +1,29 @@
 # Publish a board to GitHub
 
-WholeBoard can put a finished board in a new repository on your GitHub. The repository has the KiCad project, the
+OpenFabro can put a finished board in a new repository on your GitHub. The repository has the KiCad project, the
 files for JLCPCB, the renders and schematic, and the enclosure and firmware when the board has them. It also has
 a README with the render, your request, the designer's notes, the parts list and how to order.
 
 ## Connect your GitHub account
 
-WholeBoard publishes as the GitHub account on the computer it runs on. Do one of these:
+OpenFabro publishes as the GitHub account on the computer it runs on. Do one of these:
 
-- **Use the GitHub CLI.** Run `gh auth login` once on that computer. WholeBoard uses its sign-in, and stores no
+- **Use the GitHub CLI.** Run `gh auth login` once on that computer. OpenFabro uses its sign-in, and stores no
   token of its own.
 - **Use a token.** Create a [personal access token](https://github.com/settings/tokens) and paste it into
   *Settings → GitHub*. A fine-grained token needs *Administration* and *Contents* read and write on all
   repositories, so it can create them. A classic token needs the `repo` scope.
 
-*Settings → GitHub* shows which account WholeBoard found. When both are set up, the token in Settings is used.
+*Settings → GitHub* shows which account OpenFabro found. When both are set up, the token in Settings is used.
 
 ## Publish
 
 1. Open the board and choose **⋯ → Publish to GitHub…**.
 2. Check the repository name and description. The name comes from the board's title.
-3. Choose **Private** (the default) or **Public**. WholeBoard asks again before it makes a board public, because
+3. Choose **Private** (the default) or **Public**. OpenFabro asks again before it makes a board public, because
    the README includes your original request.
 4. Open *What goes in it* to see each file, and *README* to read the README before it goes up.
-5. Click **Create repository**. WholeBoard posts the repository's link in the board's chat when it's done.
+5. Click **Create repository**. OpenFabro posts the repository's link in the board's chat when it's done.
 
 ## Publish a new revision
 
@@ -42,7 +42,7 @@ build. Files the new build no longer has are removed. To publish to a new reposi
 | `enclosure/` | The enclosure's STL and STEP files and its FreeCAD model, if the board has one |
 | `firmware/` | The starter firmware (PlatformIO), if the board has a microcontroller |
 | `docs/` | The bring-up guide, and the PDF report if you made one |
-| `design.json` | The design as WholeBoard describes it, to import and rebuild the board |
+| `design.json` | The design as OpenFabro describes it, to import and rebuild the board |
 
-The chat with the designer, the intermediate boards from each step and WholeBoard's own files stay on your
+The chat with the designer, the intermediate boards from each step and OpenFabro's own files stay on your
 computer.

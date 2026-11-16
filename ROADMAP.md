@@ -1,6 +1,6 @@
-# WholeBoard roadmap
+# OpenFabro roadmap
 
-Proposed features, ranked by how much each would improve the boards WholeBoard produces. Each item
+Proposed features, ranked by how much each would improve the boards OpenFabro produces. Each item
 has a short design note and a rough size: **S** (a day or two), **M** (about a week), **L** (several
 weeks).
 
@@ -28,7 +28,7 @@ The grid of symbols joined by net labels is the first thing a professional engin
 - Parts that are not in a block go on a "main" sheet, grouped by the nets they share.
 - Within a sheet, place the parts in signal order: connector, protection, regulator, load.
 - Keep the generated sheets passing ERC. Continue to filter out findings that only come from how
-  WholeBoard draws schematics.
+  OpenFabro draws schematics.
 
 ### 3. A JLCPCB design-rules file (S)
 
@@ -72,7 +72,7 @@ apply wherever the block is used.
 
 ### Mains safety (M)
 
-WholeBoard should not design a mains-powered board without these checks.
+OpenFabro should not design a mains-powered board without these checks.
 
 - A net class `hv` with a working voltage.
 - Creepage and clearance checks based on IPC-2221 and IEC 62368-1, including slots under
@@ -165,8 +165,8 @@ The quote prices a panel but does not make one.
 
 ### An MCP server (M)
 
-Expose WholeBoard's checks as tools any agent can call, so Claude Code, Codex or Backplane agents
-can use them on boards WholeBoard did not design.
+Expose OpenFabro's checks as tools any agent can call, so Claude Code, Codex or Backplane agents
+can use them on boards OpenFabro did not design.
 
 - Tools: `simulate`, `power_budget`, `impedance_check`, `board_checks`, `jlc_quote`,
   `stock_check`, `bringup_guide`.
@@ -175,9 +175,9 @@ can use them on boards WholeBoard did not design.
 
 ### Altium (S)
 
-- A README section explaining that Altium Designer can open WholeBoard's KiCad project with its
+- A README section explaining that Altium Designer can open OpenFabro's KiCad project with its
   KiCad Importer extension.
-- Altium to WholeBoard: document importing the Altium project in KiCad first, then using
+- Altium to OpenFabro: document importing the Altium project in KiCad first, then using
   *Import KiCad project*.
 
 ## Quality

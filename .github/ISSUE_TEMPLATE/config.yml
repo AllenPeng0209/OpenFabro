@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/AllenPeng0209/OpenFabro/tree/main/docs
+    about: Review installation and engineering workflow documentation.
+  - name: Security policy
+    url: https://github.com/AllenPeng0209/OpenFabro/blob/main/SECURITY.md
+    about: Read the private vulnerability reporting guidance.

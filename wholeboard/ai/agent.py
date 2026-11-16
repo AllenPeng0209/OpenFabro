@@ -17,7 +17,8 @@ from ..project import Project
 from . import expert
 from .providers import AIError, make_session
 
-SYSTEM = """You are WholeBoard's PCB design engineer. You turn a user's description into a \
+SYSTEM = """You are OpenFabro, the open-source AI hardware engineer for circuits, enclosures and complete devices. \
+This pipeline focuses on PCB-based hardware and its enclosure. You turn a user's description into a \
 manufacturable printed circuit board that JLCPCB can fabricate and assemble. You work through \
 tools: KiCad libraries for footprints and symbols, JLCPCB's parts library, and a build tool that \
 generates the schematic and board, places and routes it with the TraceMaker autorouter, runs \
@@ -72,6 +73,9 @@ vents (or more headroom for side vents) and build again, or tell the user why no
 and layers, the quote total, the enclosure size and features, and anything they should check.
 
 Good engineering rules
+- User-marked canvas images are pixel references at their stated saved design version, not copper,
+electrical wires, measurements or proof of connectivity. Match visible labels to current source.
+Never infer millimetres from pixels or claim image inspection if an image could not be delivered.
 - Add the support parts real circuits need: decoupling capacitors (100 nF per IC supply pin \
 plus bulk capacitance), pull-ups, ESD protection on external connectors where sensible, USB-C \
 CC pull-down resistors (5.1 kΩ) for sinks, reset/boot circuitry for MCUs, crystal load caps.
@@ -253,13 +257,13 @@ TOOLS = [
 ]
 
 
-# An outside agent (Claude Code, through `python -m wholeboard.mcp`) talks to the user itself and is the strong model,
+# An outside agent (Claude Code, through `python -m openfabro.mcp`) talks to the user itself and is the strong model,
 # so it gets every tool but ask_user and consult_expert, plus record_answer to keep the Requirements step. simulate is
 # renamed because the MCP server's own simulate checks a KiCad project.
 OUTSIDE_NAMES = {"simulate": "simulate_design"}
 OUTSIDE_IDLE = "Designing in Claude Code"
 RECORD_ANSWER = _tool("record_answer", "Record a question you asked the user in your conversation and their answer, "
-                      "so the board's Requirements step in WholeBoard shows it.",
+                      "so the board's Requirements step in OpenFabro shows it.",
                       {"question": {"type": "string"}, "answer": {"type": "string"}}, ["question", "answer"])
 
 
@@ -268,15 +272,15 @@ def outside_tools() -> list[dict]:
                               if t["name"] not in ("ask_user", "consult_expert")]
 
 
-OUTSIDE_INTRO = """You are designing a printed circuit board in WholeBoard, through its MCP tools. The brief below \
-is the one WholeBoard gives its own designer. Follow it, with these differences:
+OUTSIDE_INTRO = """You are designing a printed circuit board in OpenFabro, through its MCP tools. The brief below \
+is the one OpenFabro gives its own designer. Follow it, with these differences:
 - Call new_board with the user's request as soon as they ask for a board, or list_boards and open_board to carry on \
 with one. The other tools work on that board. Give the user the link new_board returns: the board builds there live, \
 with the schematic, simulation, renders, quote and enclosure.
 - You ask the user your questions yourself, in your conversation. Record each answer with record_answer.
-- Messages the user types in WholeBoard's chat arrive in your tool results as user_messages. Treat them as the user \
+- Messages the user types in OpenFabro's chat arrive in your tool results as user_messages. Treat them as the user \
 speaking.
-- submit_design takes a few minutes. The user can stop it from WholeBoard.
+- submit_design takes a few minutes. The user can stop it from OpenFabro.
 - Search results are long: keep limit small.
 
 """
@@ -291,7 +295,7 @@ OUTSIDE_EDITS = [
 
 
 def guide() -> str:
-    """The designer's brief for an outside agent: WholeBoard's own, with its tools as the MCP server names them."""
+    """The designer's brief for an outside agent: OpenFabro's own, with its tools as the MCP server names them."""
     text = SYSTEM
     for old, new in OUTSIDE_EDITS:
         if old not in text:
@@ -312,6 +316,7 @@ class UnknownTool(LookupError):
 VISION_MODELS = re.compile(r"gpt-4o|gpt-4\.1|gpt-4-turbo|gpt-5|\bo[134]\b|o[34]-|grok-4|grok-[23].*vision|vision|"
                            r"llava|-vl\b|vl-|qwen.*vl|gemma-?3|pixtral|minicpm-v|llama-?3\.2-?\d*b?-?vision|"
                            r"mistral-small-3|moondream|glm-4\.?\dv", re.I)
+CHAT_TOOLS={'ask_user','search_parts','find_passive','search_footprints','footprint_info','search_symbols','symbol_info','list_blocks','block_info','check_design','report_review','enclosure_context'}
 
 
 class Agent:
@@ -319,11 +324,17 @@ class Agent:
         self.p = project
         self.view_origin = view_origin
         self.outside = False
+        self.mode='agent'
 
     # ------------------------------------------------------------ lifecycle
-    def start(self, user_text: str) -> None:
+    def start(self, user_text: str, *,canvas_reference=None,mode=None) -> None:
         p = self.p
+        if mode is not None and mode not in ('agent','chat'):raise ValueError('Choose Agent or Chat mode.')
+        self.mode=mode or 'agent'
+        from .. import canvas_references
+        reference=canvas_references.validate_for_send(p,canvas_reference)
         if p.state.get("driver") == "claude-code" and time.time() - p.state.get("driver_seen", 0) < 1800:
+            if reference:raise ValueError('The external driver cannot receive this canvas image. Use the local Codex or a configured image-capable provider.')
             # Claude Code is designing this board: it reads the message with its next tool result
             with p.lock:
                 p.inbox.append(user_text)
@@ -332,20 +343,23 @@ class Agent:
             return
         self.outside = False
         with p.lock:
+            reference=canvas_references.validate_for_send(p,reference)
             if p.worker and p.worker.is_alive():
-                p.inbox.append(user_text)
-                p.chat("user", user_text)
+                p.inbox.append({'text':user_text,**({'canvas_reference':reference} if reference else {}),**({'mode':mode} if mode else {})} if reference or mode else user_text)
+                p.chat("user", user_text,**({'canvas_reference':reference} if reference else {}))
                 return
             p.cancel.clear()
-            p.worker = threading.Thread(target=self._run, args=(user_text,), daemon=True,
+            p.worker = threading.Thread(target=self._run, args=(user_text,*([reference] if reference else [])), daemon=True,
                                         name=f"agent-{p.id}")
-        p.chat("user", user_text)
+        p.chat("user", user_text,**({'canvas_reference':reference} if reference else {}))
         p.worker.start()
 
     def _new_session(self):
         ai = config.load()["ai"]
         tools = TOOLS if expert.settings(ai) else [t for t in TOOLS if t["name"] != "consult_expert"]
-        sess = make_session(ai, SYSTEM, tools)
+        if self.mode=='chat':tools=[tool for tool in tools if tool['name'] in CHAT_TOOLS]
+        system=SYSTEM+('\nCHAT MODE: discuss and inspect only. Do not modify, build, simulate or finish a design. Mutating tools are blocked by the server.\n' if self.mode=='chat' else '')
+        sess = make_session(ai, system, tools)
         sess.recall = self._recall
         self.p.state["ai_label"] = sess.label
         return sess
@@ -355,11 +369,26 @@ class Agent:
         spec = self.p.state.get("spec")
         if not spec:
             return ""
-        return (f"(WholeBoard: older steps were shortened to fit your context. The current design spec, revision "
+        return (f"(OpenFabro: older steps were shortened to fit your context. The current design spec, revision "
                 f"{self.p.state.get('revision')}, is below; carry on from where you were.)\n```json\n"
                 f"{json.dumps(spec)}\n```")
 
-    def _run(self, user_text: str) -> None:
+    def _user_input(self,text,reference=None):
+        if reference:
+            from ..canvas_references import provider_image
+            self.p.session.add_user(text,images=[provider_image(self.p,reference)])
+        else:self.p.session.add_user(text)
+
+    def _pending_inputs(self,pending):
+        if any(isinstance(item,dict) for item in pending):
+            for item in pending:
+                if isinstance(item,dict):
+                    if item.get('mode') in ('agent','chat'):self.mode=item['mode']
+                    self._user_input(item['text'],item.get('canvas_reference'))
+                else:self._user_input(item)
+        else:self._user_input('\n\n'.join(pending))
+
+    def _run(self, user_text: str, canvas_reference=None) -> None:
         p = self.p
         try:
             if p.session is None:
@@ -371,7 +400,7 @@ class Agent:
             p.set_status("running", f"Working with {p.session.label}")
             if p.state["steps"]["brief"]["status"] == "pending":
                 p.step("brief", "running", "Reading the request")
-            p.session.add_user(user_text)
+            self._user_input(user_text,canvas_reference)
             self._loop()
         except pipeline.Cancelled:
             p.set_status("stopped", "Stopped by the user")
@@ -409,7 +438,7 @@ class Agent:
                     pending = p.inbox[:]
                     p.inbox.clear()
                 if pending:
-                    p.session.add_user("\n\n".join(pending))
+                    self._pending_inputs(pending)
                     continue
                 done = p.state.get("finished")
                 p.set_status("done" if done else "idle",
@@ -417,6 +446,9 @@ class Agent:
                 return
             results = []
             for call in turn.calls:
+                with p.lock:
+                    for update in p.inbox:
+                        if isinstance(update,dict) and update.get('mode') in ('agent','chat'):self.mode=update['mode']
                 if p.cancel.is_set():
                     raise pipeline.Cancelled()
                 if call.error:
@@ -434,9 +466,11 @@ class Agent:
                 p.inbox.clear()
             extras = [n for n in getattr(self, "notes", []) if n]
             self.notes = []
-            if pending:
+            marked=any(isinstance(item,dict) for item in pending)
+            if pending and not marked:
                 extras.append("Message from the user while you were working: " + "\n\n".join(pending))
             p.session.add_tool_results(results, "\n\n".join(extras) or None)
+            if marked:self._pending_inputs(pending)
             p.set_status("running", f"Working with {p.session.label}")
         p.chat("system", "Reached the turn limit for one run. Send a message to continue.")
         p.set_status("idle", "Turn limit reached")
@@ -460,10 +494,10 @@ class Agent:
         me = threading.current_thread()
         with p.lock:
             if p.worker and p.worker.is_alive():
-                raise Busy("WholeBoard's own designer is working on this board. Stop it in WholeBoard first.")
+                raise Busy("OpenFabro's own designer is working on this board. Stop it in OpenFabro first.")
             p.worker = me
             p.cancel.clear()
-            p.session = None              # WholeBoard's own designer starts again from the current spec next time
+            p.session = None              # OpenFabro's own designer starts again from the current spec next time
             p.state.update(driver="claude-code", driver_seen=time.time(), ai_label="Claude Code")
         self.outside = True
         try:
@@ -476,7 +510,7 @@ class Agent:
                 out = self._execute(name, args)
         except pipeline.Cancelled:
             p.set_status("stopped", "Stopped by the user")
-            out = "The user stopped this in WholeBoard. Ask them what to do next."
+            out = "The user stopped this in OpenFabro. Ask them what to do next."
         finally:
             with p.lock:
                 if p.worker is me:
@@ -496,6 +530,7 @@ class Agent:
 
     # ------------------------------------------------------------ tools
     def _execute(self, name: str, args: dict) -> str:
+        if self.mode=='chat' and name not in CHAT_TOOLS:raise ValueError('Chat mode cannot modify, build or simulate the design. Choose Agent mode for engineering changes.')
         p = self.p
         if name == "ask_user":
             return self._ask(str(args["question"]), [str(o) for o in args.get("options") or []])
@@ -527,7 +562,7 @@ class Agent:
             p.emit({"type": "tool", "name": name, "text": f"Searched footprints for “{q}”: {len(res)} found"})
             return json.dumps(res) if res else "No footprints matched; try fewer or different words."
         if name == "footprint_info":
-            fp = libs.load_footprint(str(args["footprint"]))
+            fp = libs.load_footprint(str(args["footprint"]),p.state.get("spec"))
             p.emit({"type": "tool", "name": name, "text": f"Read footprint {args['footprint']}"})
             if not fp:
                 hint = libs.search_footprints(str(args["footprint"]).split(":")[-1].replace("_", " ")[:30], 8)
@@ -539,7 +574,7 @@ class Agent:
             p.emit({"type": "tool", "name": name, "text": f"Searched symbols for “{q}”: {len(res)} found"})
             return json.dumps(res) if res else "No symbols matched."
         if name == "symbol_info":
-            info = schematic.symbol_info(str(args["symbol"]))
+            info = schematic.symbol_info(str(args["symbol"]),p.state.get("spec"))
             p.emit({"type": "tool", "name": name, "text": f"Read symbol {args['symbol']}"})
             return json.dumps(info) if info else "Symbol not found; use search_symbols."
         if name == "list_blocks":
@@ -630,7 +665,7 @@ class Agent:
                 res = pipeline.run_case(p, p.state["spec"])
                 return json.dumps({"stock_case": True, "result": res,
                                    "note": "The board goes in the user's own box (board.case), so there is no printed "
-                                           "enclosure: WholeBoard checked the fit and drew drilling templates. Fix any "
+                                           "enclosure: OpenFabro checked the fit and drew drilling templates. Fix any "
                                            "problems by changing the design, then finish."})
             from .. import enclosure
             from ..kicad import geometry
@@ -777,11 +812,16 @@ class Agent:
                 p.answer_ready.wait(timeout=0.5)
             answer = p.answers.pop(qid)
         p.set_status("running", "Working")
+        if isinstance(answer,dict):
+            from ..canvas_references import provider_image
+            return {'text':'The user answered: '+answer['text'],'images':[provider_image(p,answer['canvas_reference'])],'require_images':True}
         return f"The user answered: {answer}"
 
 
-def answer(project: Project, qid: str, text: str) -> None:
+def answer(project: Project, qid: str, text: str, *,canvas_reference=None) -> None:
     with project.answer_ready:
-        project.answers[qid] = text
+        from .. import canvas_references
+        reference=canvas_references.validate_for_send(project,canvas_reference)
+        project.answers[qid] = {'text':text,'canvas_reference':reference} if reference else text
         project.answer_ready.notify_all()
-    project.emit({"type": "answer", "id": qid, "text": text})
+    project.emit({"type": "answer", "id": qid, "text": text,**({'canvas_reference':reference} if reference else {})})

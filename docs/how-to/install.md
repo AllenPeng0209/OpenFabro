@@ -1,6 +1,6 @@
 # Install and check the tools
 
-The installer sets up everything: Python, KiCad, TraceMaker, FreeCAD, KiCad's libraries and WholeBoard's
+The installer sets up everything: Python, KiCad, TraceMaker, FreeCAD, KiCad's libraries and OpenFabro's
 Python packages. It asks before installing system packages.
 
 === "Linux and macOS"
@@ -22,13 +22,13 @@ Python packages. It asks before installing system packages.
 | Python 3.10+, git | package manager | Homebrew | winget |
 | KiCad 10 | KiCad's PPA on Ubuntu, the distribution's package elsewhere, Flathub if that is too old | Homebrew | winget |
 | TraceMaker | ready-made release (x86_64, glibc 2.38+), otherwise built from source | built from source | release inside WSL |
-| FreeCAD | official AppImage in `~/.wholeboard/tools` | Homebrew | winget |
+| FreeCAD | official AppImage in `~/.openfabro/tools` | Homebrew | winget |
 | KiCad libraries | with KiCad, or downloaded | with KiCad | with KiCad |
 
 ## Check what is installed
 
 ```
-.venv/bin/python -m wholeboard.doctor
+.venv/bin/python -m openfabro.doctor
 ```
 
 On Windows, use `.venv\Scripts\python` instead. The doctor lists each tool, where it was found and its version.
@@ -36,9 +36,9 @@ On Windows, use `.venv\Scripts\python` instead. The doctor lists each tool, wher
 ## Install one missing tool
 
 ```
-.venv/bin/python -m wholeboard.doctor --install freecad
-.venv/bin/python -m wholeboard.doctor --install platformio
-.venv/bin/python -m wholeboard.doctor --install kikit
+.venv/bin/python -m openfabro.doctor --install freecad
+.venv/bin/python -m openfabro.doctor --install platformio
+.venv/bin/python -m openfabro.doctor --install kikit
 ```
 
 `--install` on its own installs every missing tool except PlatformIO and KiKit (`tracemaker`, `freecad`, `ngspice`, `libs`). Add `--force` to reinstall a tool that is already found.
@@ -56,7 +56,7 @@ On Windows, use `.venv\Scripts\python` instead. The doctor lists each tool, wher
 - **KiKit** (optional) for panels. It runs on KiCad's own Python.
 - **PlatformIO** (optional) to compile the starter firmware.
 - **3D part models** come from your KiCad install. Any missing model is downloaded once from KiCad's library into
-  `~/.wholeboard/models3d` (*Settings → KiCad & TraceMaker → 3D part models*).
+  `~/.openfabro/models3d` (*Settings → KiCad & TraceMaker → 3D part models*).
 - **KiCad footprint and symbol libraries**, normally installed with KiCad. If they are missing (for example when
   `kicad-cli` runs from Docker), use *Settings → Download KiCad libraries*.
 - **An AI**, one of:

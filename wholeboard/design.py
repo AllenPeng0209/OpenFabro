@@ -81,6 +81,13 @@ def normalise(spec: dict) -> dict:
     spec["board"] = b
     spec["rules"] = {**DEFAULT_RULES, **(spec.get("rules") or {})}
     spec["components"] = [dict(c) for c in spec.get("components") or []]
+    from .project_library import asset
+    for component in spec["components"]:
+        footprint=component.get("footprint") or ""
+        entry=asset(spec,"footprints",footprint) if isinstance(footprint,str) and footprint.startswith("Project:") else None
+        if entry and entry.get("height_mm") is not None and component.get("height_mm") is None:
+            component["height_mm"]=entry["height_mm"]
+            component["height_source"]="project-library"
     spec["nets"] = [dict(n) for n in spec.get("nets") or []]
     for n in spec["nets"]:
         n.setdefault("class", "signal")
@@ -102,6 +109,11 @@ def copper_only(footprint: str | None) -> bool:
     return str(footprint or "").startswith(COPPER_ONLY)
 
 
+def pcb_excluded(component):
+    from .terminals import excluded
+    return excluded(component)
+
+
 TEST_POINT_FP = "TestPoint:TestPoint_Pad_D1.5mm"
 FIDUCIAL_FP = "Fiducial:Fiducial_1mm_Mask2mm"
 FINE_PITCH = re.compile(r"_P0\.([0-4]\d*|50*)mm")
@@ -113,7 +125,7 @@ def _fixed_boxes(spec: dict) -> list[tuple]:
         pl = c.get("placement") or {}
         if "x_mm" not in pl:
             continue
-        fp = libs.load_footprint(c.get("footprint") or "")
+        fp = libs.load_footprint(c.get("footprint") or "",spec)
         boxes.append(_placed_courtyard(c, fp.courtyard if fp else (-2, -2, 2, 2)))
     return boxes
 
@@ -125,7 +137,7 @@ def _add_fiducials(spec: dict) -> None:
     w, h = float(b["width_mm"]), float(b["height_mm"])
     poly = b.get("outline") or [[0, 0], [w, 0], [w, h], [0, h]]
     holes = hole_positions(spec)
-    hfp = libs.load_footprint(hole_footprint(spec)) if holes else None
+    hfp = libs.load_footprint(hole_footprint(spec),spec) if holes else None
     hole_r = max(abs(v) for v in hfp.courtyard) if hfp else 3.5
     r = 1.5                                       # the 2 mm mask opening's courtyard plus a margin
     boxes = _fixed_boxes(spec)
@@ -188,16 +200,16 @@ def _place_test_points(spec: dict) -> None:
     w, h = float(b["width_mm"]), float(b["height_mm"])
     poly = b.get("outline") or [[0, 0], [w, 0], [w, h], [0, h]]
     holes = hole_positions(spec)
-    hfp = libs.load_footprint(hole_footprint(spec)) if holes else None
+    hfp = libs.load_footprint(hole_footprint(spec),spec) if holes else None
     hole_r = max(abs(v) for v in hfp.courtyard) if hfp else 3.5
-    tfp = libs.load_footprint(TEST_POINT_FP)
+    tfp = libs.load_footprint(TEST_POINT_FP,spec)
     r = (max(abs(v) for v in tfp.courtyard) if tfp else 1.25) + 0.25   # test pad courtyard plus a margin
     boxes = []                                    # fixed parts' courtyards on the board
     for c in spec["components"]:
         pl = c.get("placement") or {}
         if "x_mm" not in pl or c.get("test_point_for"):
             continue
-        fp = libs.load_footprint(c.get("footprint") or "")
+        fp = libs.load_footprint(c.get("footprint") or "",spec)
         boxes.append(_placed_courtyard(c, fp.courtyard if fp else (-2, -2, 2, 2)))
     taken = [(float(c["placement"]["x_mm"]), float(c["placement"]["y_mm"])) for c in spec["components"]
              if c.get("test_point_for") and "x_mm" in (c.get("placement") or {})]
@@ -226,6 +238,24 @@ def _steps(a: float, b: float, step: float = 0.5) -> list[float]:
 def validate(spec: dict) -> Report:
     spec = normalise(spec)
     rep = Report()
+    from . import project_library, sheets, terminals
+    try:
+        project_library.validate(spec)
+        from . import pad_edits
+        pad_edits.validate(spec)
+        terminals.validate(spec)
+        sheets.validate(spec)
+        from . import object_groups
+        object_groups.validate(spec)
+        from . import parametric_symbols
+        parametric_symbols.validate(spec)
+        from . import stackup
+        stackup.validate(spec)
+        from .kicad.schematic_wires import validate_guides
+        validate_guides((spec.get('editor') or {}).get('connection_guides',[]))
+    except (ValueError,TypeError,KeyError) as error:
+        rep.errors.append(str(error))
+        return rep
     b = spec["board"]
     try:
         w, h = float(b["width_mm"]), float(b["height_mm"])
@@ -234,13 +264,13 @@ def validate(spec: dict) -> Report:
         return rep
     if not (5 <= w <= 500 and 5 <= h <= 500):
         rep.errors.append("board size must be between 5 and 500 mm on each side")
-    if b["layers"] not in (1, 2, 4, 6):
-        rep.errors.append("board.layers must be 1, 2, 4 or 6")
+    if b["layers"] not in (1, 2, 4, 6, 8, 10, 12):
+        rep.errors.append("board.layers must be 1, 2, 4, 6, 8, 10 or 12")
     for layer, net in (b.get("planes") or {}).items():
-        if b["layers"] < 4:
-            rep.errors.append("board.planes needs a 4 or 6 layer board")
+        if b["layers"] < 4 and not b.get("stackup"):
+            rep.errors.append("board.planes needs at least four copper layers")
             break
-        if layer not in ("In1.Cu", "In2.Cu", "In3.Cu", "In4.Cu"):
+        if layer not in (set(stackup.copper_names(b['layers'])) if b.get('stackup') else {f'In{i}.Cu' for i in range(1,max(0,int(b['layers'])-2)+1)}):
             rep.errors.append(f"board.planes: unknown layer {layer!r}")
 
     rep.errors += spec.get("block_errors") or []
@@ -271,7 +301,7 @@ def validate(spec: dict) -> Report:
             rep.errors.append(f"duplicate reference {ref}")
         refs.add(ref)
         fid = str(c.get("footprint", ""))
-        fp = libs.load_footprint(fid)
+        fp = libs.load_footprint(fid,spec)
         if not fp:
             name = fid.split(":")[-1]
             hint = libs.search_footprints(re.sub(r"[_-]", " ", name)[:40], 6)
@@ -280,8 +310,8 @@ def validate(spec: dict) -> Report:
             continue
         fps[ref] = fp
         x0, y0, x1, y1 = fp.courtyard
-        area += (x1 - x0) * (y1 - y0)
-        if not c.get("lcsc") and not c.get("dnp") and not copper_only(fid):
+        if not pcb_excluded(c):area += (x1 - x0) * (y1 - y0)
+        if not c.get("terminal") and not c.get("lcsc") and not c.get("dnp") and not copper_only(fid):
             rep.warnings.append(f"{ref}: no LCSC part number, so JLCPCB cannot assemble or price it")
 
     used: dict[str, str] = {}
@@ -329,6 +359,9 @@ def validate(spec: dict) -> Report:
     ie, iw = impedance.validate(spec)
     rep.errors += ie
     rep.warnings += iw
+    from . import buses
+    for issue in buses.compile(spec)['issues']:
+        (rep.errors if issue['severity']=='error' else rep.warnings).append('Bus '+issue['bus_id']+': '+issue['message'])
     me, mw = mains.validate(spec)
     rep.errors += me
     rep.warnings += mw
@@ -490,6 +523,7 @@ def _check_fixed(spec: dict, fps: dict, rep: Report, w: float, h: float) -> None
     from_kicad = {c.get("ref") for c in spec["components"] if (c.get("placement") or {}).get("from") == "kicad"}
     for c in spec["components"]:
         pl = c.get("placement") or {}
+        if pcb_excluded(c):continue
         fp = fps.get(c.get("ref"))
         if fp is None or pl.get("x_mm") is None or pl.get("y_mm") is None:
             continue

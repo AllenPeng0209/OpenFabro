@@ -17,7 +17,7 @@ node for the board, the inside air, and the inside and outside of the lid, the s
 The board sees a mix of the inside air and the walls, so `solve` gives the temperature that mix amounts to
 (`board_env_c`) and how strongly the board loses heat to it (`board_h`): the browser's plate solver and the
 circuit simulation use those in place of open air. `geometry` finds the box (the printed enclosure, the stock
-case, or the one WholeBoard would suggest) in board coordinates.
+case, or the one OpenFabro would suggest) in board coordinates.
 """
 
 from __future__ import annotations
@@ -127,7 +127,7 @@ def _from_case(case: dict, ctx: dict) -> dict:
 
 
 def vent_slots(box: dict, which: str) -> tuple[list, list]:
-    """The lid and side slots for a vent choice: the design's own, or the ones WholeBoard would cut."""
+    """The lid and side slots for a vent choice: the design's own, or the ones OpenFabro would cut."""
     if which == "design":
         return box["lid_slots"], [s for s in box["side"] if not s.get("name")]
     lid, side = [], []

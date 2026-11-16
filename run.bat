@@ -1,5 +1,5 @@
 @echo off
-rem Start WholeBoard on Windows. Creates a virtual environment on first run and
+rem Start OpenFabro on Windows. Creates a virtual environment on first run and
 rem reinstalls the dependencies when pyproject.toml changes.
 cd /d "%~dp0"
 if not exist .venv\Scripts\python.exe (
@@ -13,4 +13,4 @@ if exist %STAMP% set /p HAVE=<%STAMP%
 if not "%HAVE%"=="%WANT%" (
   .venv\Scripts\python -m pip install -e . && (echo %WANT%)>%STAMP%
 )
-.venv\Scripts\python -m wholeboard %*
+.venv\Scripts\python -m openfabro %*

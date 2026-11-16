@@ -1,6 +1,6 @@
-"""Build a WholeBoard enclosure in FreeCAD.
+"""Build a OpenFabro enclosure in FreeCAD.
 
-WholeBoard runs this with FreeCAD's command-line mode (freecadcmd) and passes the resolved geometry
+OpenFabro runs this with FreeCAD's command-line mode (freecadcmd) and passes the resolved geometry
 in the JSON file named by $WB_ENCLOSURE_JOB. The same file is saved as a macro with the job embedded
 (<name>-enclosure.FCMacro), so you can open it in FreeCAD, change numbers and run it again.
 

@@ -1,0 +1,31 @@
+async(page,options={})=>{
+  const origin=options.origin||'http://127.0.0.1:8770',checks=[];
+  const spec={name:'wire_junction_ui',board:{width_mm:30,height_mm:22,layers:2},components:[1,2,3].map((i)=>({ref:'R'+i,value:'1k',symbol:'Device:R',footprint:'Resistor_SMD:R_0603_1608Metric',placement:{x_mm:5+(i-1)*10,y_mm:10,rotation:0}})),nets:[{name:'SIG',pins:['R1.1','R2.1']},{name:'GND',pins:['R1.2','R2.2','R3.2']}],editor:{positions:{R1:[200,200],R2:[600,200],R3:[400,520]},connection_guides:[{id:'signal','from':'R1.1','to':'R2.1'},{id:'ground','from':'R1.2','to':'R2.2'}]}};
+  const created=await page.request.post(origin+'/api/workbench/projects',{data:{title:'Schematic junction acceptance',spec}});if(!created.ok())throw new Error(await created.text());const p=await created.json();
+  const state=async()=>(await(await page.request.get(origin+'/api/projects/'+p.id)).json()).state;
+  const saved=()=>{const pending=page.waitForResponse(r=>r.url().endsWith('/design')&&r.request().method()==='PUT'&&r.ok(),{timeout:5000});pending.catch(()=>{});return pending;};
+  const ready=()=>page.waitForSelector('.native-symbol-graphics');
+  const wirePoint=async index=>{await page.locator('#fitButton').click();return page.locator(`[data-wire-route="${index}"]`).first().evaluate((path,index)=>{for(const ratio of [.5,.3,.7,.2,.8,.1,.9,.4,.6]){const point=path.getPointAtLength(path.getTotalLength()*ratio).matrixTransform(path.getScreenCTM()),target=document.elementFromPoint(point.x,point.y)?.closest('[data-wire-route]');if(target?.dataset.wireRoute===String(index))return{x:point.x,y:point.y};}throw Error('No unambiguous visible point on wire route '+index);},index);};
+  try{
+    await page.setViewportSize({width:1440,height:1000});await page.goto(origin+'/?wire-joins='+Date.now()+'#'+p.id);await page.getByRole('tab',{name:'Schematic',exact:true}).click();await page.locator('#collapseChat').click();await ready();
+    await page.locator('#wireButton').click();await page.locator('[data-pinref="R3.1"]').click();let at=await wirePoint(0),wait=saved();await page.mouse.click(at.x,at.y);await wait;await ready();
+    let current=await state();if(!current.spec.nets.find(net=>net.name==='SIG').pins.includes('R3.1')||current.spec.editor.connection_guides.at(-1).to_join?.wire!=='signal')throw new Error('A pin did not attach to the clicked existing wire');
+    await page.locator('.native-junction').waitFor();const native=await page.request.post(`${origin}/api/workbench/projects/${p.id}/native`);if(!native.ok()||!(await native.json()).schematic_parity?.ok)throw new Error('Native junction/netlist parity failed');
+    checks.push('Pin-to-wire gestures save attached native junctions and matching KiCad nets');
+    await page.locator('#wireButton').click();at=await wirePoint(2);await page.mouse.click(at.x,at.y);await page.locator('[data-disconnect-pin="R3.1"]').waitFor();wait=saved();await page.locator('[data-disconnect-pin="R3.1"]').click();await wait;await ready();
+    current=await state();if(current.spec.nets.some(net=>net.pins.includes('R3.1'))||current.spec.editor.connection_guides.length!==2)throw new Error('Disconnecting a branch pin left its saved electrical membership or wire');
+    checks.push('Explicit pin disconnection removes electrical membership and its wire branches');
+    await page.locator('#wireButton').click();at=await wirePoint(0);await page.mouse.click(at.x,at.y);wait=saved();await page.locator('[data-pinref="R3.1"]').click();await wait;await ready();current=await state();if(current.spec.editor.connection_guides.at(-1).from_join?.wire!=='signal')throw new Error('A wire-origin gesture did not retain its parent attachment');
+    checks.push('A connection can start on a native wire and finish on a pin');
+    at=await wirePoint(0);await page.mouse.click(at.x,at.y);at=await wirePoint(1);await page.mouse.click(at.x,at.y);await page.locator('#mergeNetDialog').waitFor({state:'visible'});const version=current.workbench.version;await page.locator('#mergeNetDialog').getByRole('button',{name:'Cancel',exact:true}).click();if((await state()).workbench.version!==version)throw new Error('Cancelling a wire-to-wire net merge changed the design');
+    at=await wirePoint(0);await page.mouse.click(at.x,at.y);at=await wirePoint(1);await page.mouse.click(at.x,at.y);wait=saved();await page.locator('#confirmNetMerge').click();await wait;await ready();current=await state();if(current.spec.nets.length!==1||!current.spec.editor.connection_guides.at(-1).from_join||!current.spec.editor.connection_guides.at(-1).to_join)throw new Error('Confirmed wire-to-wire joining did not connect both actual wire anchors');
+    const checked=await page.request.post(`${origin}/api/workbench/projects/${p.id}/native`);if(!checked.ok()||!(await checked.json()).schematic_parity?.ok)throw new Error('Merged native wire netlist differs from the saved design');
+    const mergedScene=await(await page.request.post(origin+'/api/workbench/schematic-view',{data:current.spec})).json();if(mergedScene.routes.find(route=>route.index===3)?.status!=='routed')throw new Error('The merged wire-to-wire connection has no actual routed geometry');
+    checks.push('Wire-to-wire joining reviews net merges and preserves native parity');
+    await page.locator('#wireButton').click();at=await wirePoint(3);await page.mouse.click(at.x,at.y);await page.keyboard.press('Delete');await page.locator('#wireDisconnectDialog').waitFor({state:'visible'});const beforeNets=JSON.stringify(current.spec.nets);wait=saved();await page.locator('#removeWireDrawingDialog').click();await wait;await ready();current=await state();if(JSON.stringify(current.spec.nets)!==beforeNets)throw new Error('Removing the wire drawing changed its named electrical nets');
+    checks.push('Wire removal distinguishes a drawing deletion from explicit electrical disconnection');
+    await page.reload();await ready();if((await state()).spec.editor.connection_guides.length!==3)throw new Error('Reload lost or restored removed junction metadata');
+    if(options.artifactDir)await page.screenshot({path:options.artifactDir+'/wire-junctions.png'});
+    checks.push('Saved junction metadata survives reload');return{checks,project:p.id};
+  }finally{await page.request.delete(origin+'/api/projects/'+p.id);}
+}

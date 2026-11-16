@@ -1,0 +1,11 @@
+{
+  "name":"paired_trace_editor",
+  "board":{"width_mm":45,"height_mm":30,"layers":4,"ground_pour":null,"timing":{"track_ps_per_mm":{"F.Cu":7,"B.Cu":7},"via_ps_per_mm":0}},
+  "rules":{"track_mm":0.25,"power_track_mm":0.5,"clearance_mm":0.2,"via_diameter_mm":0.6,"via_drill_mm":0.3,"edge_clearance_mm":0.3},
+  "components":[
+    {"ref":"J1","value":"Pair source","symbol":"Connector_Generic:Conn_01x04","footprint":"Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical","placement":{"x_mm":8,"y_mm":8},"pin_properties":{"1":{"bus_group":"USB","pair":"DATA","polarity":"P","bus_type":"USB 2.0","impedance_ohms":90,"impedance_tolerance_pct":20,"pn_skew_ps":20},"2":{"bus_group":"USB","pair":"DATA","polarity":"N","bus_type":"USB 2.0","impedance_ohms":90,"impedance_tolerance_pct":20,"pn_skew_ps":20}}},
+    {"ref":"J2","value":"Pair destination","symbol":"Connector_Generic:Conn_01x04","footprint":"Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical","placement":{"x_mm":38,"y_mm":8},"pin_properties":{"1":{"bus_group":"USB","pair":"DATA","polarity":"P","bus_type":"USB 2.0","impedance_ohms":90,"impedance_tolerance_pct":20,"pn_skew_ps":20},"2":{"bus_group":"USB","pair":"DATA","polarity":"N","bus_type":"USB 2.0","impedance_ohms":90,"impedance_tolerance_pct":20,"pn_skew_ps":20}}}
+  ],
+  "nets":[{"name":"DP","pins":["J1.1","J2.1"]},{"name":"DN","pins":["J1.2","J2.2"]},{"name":"KEEP_P","pins":["J1.3","J2.3"]},{"name":"KEEP_N","pins":["J1.4","J2.4"]}],
+  "fixed_copper":[{"net":"KEEP_P","tracks":[{"id":"33333333-3333-4333-8333-000000000003","a":[8,13.08],"b":[38,13.08],"w":0.25,"layer":"B.Cu"}]},{"net":"KEEP_N","tracks":[{"id":"33333333-3333-4333-8333-000000000004","a":[8,15.62],"b":[38,15.62],"w":0.25,"layer":"B.Cu"}]}]
+}

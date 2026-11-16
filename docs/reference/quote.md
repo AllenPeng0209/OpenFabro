@@ -3,7 +3,7 @@
 | Part of the quote | Where it comes from |
 |---|---|
 | Component prices, stock, basic/preferred/extended status | **Live**, from JLCPCB's parts library |
-| PCB fabrication, assembly fees, shipping | **Estimated**, from [`wholeboard/jlc/pricing.json`](https://github.com/DingoOz/WholeBoard/blob/main/wholeboard/jlc/pricing.json) |
+| PCB fabrication, assembly fees, shipping | **Estimated**, from [`wholeboard/jlc/pricing.json`](https://github.com/AllenPeng0209/OpenFabro/blob/main/wholeboard/jlc/pricing.json) |
 | Extra-cost features (small vias, vias in pads, bottom-side assembly) | From [`capabilities.json`](jlc-limits.md) and the board |
 | Mouser and DigiKey | **Live** with API keys in *Settings → JLCPCB*; search links without them |
 | OSH Park, Aisler | Worked out from their published prices ([Other fabs](jlc-limits.md#other-fabs)) |

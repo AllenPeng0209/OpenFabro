@@ -1,0 +1,225 @@
+{
+  "name": "interactive_routing_editor",
+  "board": {
+    "width_mm": 40,
+    "height_mm": 30,
+    "layers": 2,
+    "ground_pour": null
+  },
+  "rules": {
+    "track_mm": 0.25,
+    "clearance_mm": 0.2,
+    "via_diameter_mm": 0.6,
+    "via_drill_mm": 0.3,
+    "edge_clearance_mm": 0.3
+  },
+  "components": [
+    {
+      "ref": "TP1",
+      "value": "Bare test pad",
+      "symbol": "Connector:TestPoint",
+      "footprint": "Project:PadA",
+      "placement": {
+        "x_mm": 5,
+        "y_mm": 10
+      }
+    },
+    {
+      "ref": "TP2",
+      "value": "Bare test pad",
+      "symbol": "Connector:TestPoint",
+      "footprint": "Project:PadA",
+      "placement": {
+        "x_mm": 30,
+        "y_mm": 10
+      }
+    },
+    {
+      "ref": "TP3",
+      "value": "Bare test pad",
+      "symbol": "Connector:TestPoint",
+      "footprint": "Project:PadA",
+      "placement": {
+        "x_mm": 20,
+        "y_mm": 5
+      }
+    },
+    {
+      "ref": "TP4",
+      "value": "Bare test pad",
+      "symbol": "Connector:TestPoint",
+      "footprint": "Project:PadA",
+      "placement": {
+        "x_mm": 20,
+        "y_mm": 20
+      }
+    },
+    {
+      "ref": "TP5",
+      "value": "Bare test pad",
+      "symbol": "Connector:TestPoint",
+      "footprint": "Project:PadA",
+      "placement": {
+        "x_mm": 24,
+        "y_mm": 15
+      }
+    },
+    {
+      "ref": "TP6",
+      "value": "Bare test pad",
+      "symbol": "Connector:TestPoint",
+      "footprint": "Project:PadA",
+      "placement": {
+        "x_mm": 8,
+        "y_mm": 23
+      }
+    },
+    {
+      "ref": "TP7",
+      "value": "Bare test pad",
+      "symbol": "Connector:TestPoint",
+      "footprint": "Project:PadA",
+      "placement": {
+        "x_mm": 32,
+        "y_mm": 23
+      }
+    }
+  ],
+  "nets": [
+    {
+      "name": "SIG",
+      "pins": [
+        "TP1.1",
+        "TP2.1"
+      ]
+    },
+    {
+      "name": "N",
+      "pins": [
+        "TP3.1",
+        "TP4.1",
+        "TP5.1"
+      ]
+    },
+    {
+      "name": "KEEP",
+      "pins": [
+        "TP6.1",
+        "TP7.1"
+      ]
+    }
+  ],
+  "library": {
+    "footprints": {
+      "PadA": {
+        "name": "PadA",
+        "mount": "smd",
+        "height_mm": 0.035,
+        "courtyard": [
+          -0.31,
+          -0.31,
+          0.31,
+          0.31
+        ],
+        "graphics": [],
+        "pads": [
+          {
+            "name": "1",
+            "kind": "smd",
+            "shape": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 0.6,
+            "h": 0.6,
+            "layer": "F.Cu",
+            "paste": false
+          }
+        ]
+      },
+      "PadB": {
+        "name": "PadB",
+        "mount": "smd",
+        "height_mm": 0.035,
+        "courtyard": [
+          -0.41000000000000003,
+          -0.31,
+          0.41000000000000003,
+          0.31
+        ],
+        "graphics": [],
+        "pads": [
+          {
+            "name": "1",
+            "kind": "smd",
+            "shape": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 0.8,
+            "h": 0.6,
+            "layer": "F.Cu",
+            "paste": false
+          }
+        ]
+      }
+    }
+  },
+  "fixed_zones": [],
+  "fixed_copper": [
+    {
+      "net": "N",
+      "tracks": [
+        {
+          "id": "aaaaaaaa-aaaa-4aaa-8aaa-000000000001",
+          "a": [
+            20,
+            5
+          ],
+          "b": [
+            20,
+            20
+          ],
+          "w": 0.4,
+          "layer": "F.Cu",
+          "locked": false
+        },
+        {
+          "id": "aaaaaaaa-aaaa-4aaa-8aaa-000000000002",
+          "a": [
+            20,
+            15
+          ],
+          "b": [
+            24,
+            15
+          ],
+          "w": 0.4,
+          "layer": "F.Cu",
+          "locked": true
+        }
+      ],
+      "arcs": [],
+      "vias": []
+    },
+    {
+      "net": "KEEP",
+      "tracks": [
+        {
+          "id": "aaaaaaaa-aaaa-4aaa-8aaa-000000000003",
+          "a": [
+            8,
+            23
+          ],
+          "b": [
+            32,
+            23
+          ],
+          "w": 0.3,
+          "layer": "F.Cu",
+          "locked": true
+        }
+      ],
+      "arcs": [],
+      "vias": []
+    }
+  ]
+}

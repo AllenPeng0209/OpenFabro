@@ -1,0 +1,8 @@
+async(page,options={})=>{
+ const result=await page.evaluate(async()=>{
+  const prefix=new URL(document.querySelector('script[src*="workbench.mjs"]').src).pathname.replace(/workbench\.mjs.*$/,'');const {CADView}=await import(prefix+'workbench-cad.mjs'),{CADViewUI}=await import(prefix+'workbench-cad-ui.mjs');const host=document.createElement('div');host.style.cssText='position:fixed;left:0;top:0;width:400px;height:300px;z-index:9999';document.body.append(host);const data={size:[20,10,4],meshes:[{name:'PCB',group:'board',color:'#88aabb',v:[0,0,1,20,0,1,0,10,1],t:[0,1,2]}]},state={pid:'isolated-nav-pose',project:{},session:{user:{id:'alice'}},active:'3d',canvas:new CADView(host,data)},ui=new CADViewUI({state:()=>state,toast:()=>{}});
+  try{ui.attach(state.canvas);state.canvas.setViewDirection([0,0,1]);state.canvas.setOrientation({roll:Math.PI/2});ui.capture(state.canvas);state.canvas.destroy();state.canvas=new CADView(host,data);ui.attach(state.canvas);const replacement=state.canvas.camera.up.toArray();state.session.user.id='bob';ui.apply();const bobRoll=state.canvas.roll;state.canvas.setOrientation({roll:.25});state.session.user.id='alice';ui.apply();const returned=state.canvas.camera.up.toArray();return{replacement,bobRoll,returned};}
+  finally{state.canvas.destroy();host.remove();}
+ });
+ const near=(v,w)=>v.every((n,i)=>Math.abs(n-w[i])<1e-8);if(!near(result.replacement,[-1,0,0])||!near(result.returned,[-1,0,0])||result.bobRoll!==0)throw Error('A rolled standard view was lost on replacement or leaked across actors: '+JSON.stringify(result));return{checks:['Native viewer replacement retains the chosen standard view and roll','Roll resets for a new actor and restores with its original owner'],result};
+}

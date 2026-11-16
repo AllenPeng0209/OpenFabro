@@ -1,0 +1,1153 @@
+{
+  "audited_at_utc": "2026-11-16T10:33:55.593276+00:00",
+  "scope": "WholeBoard/OpenFabro self-hosted web IDE vs current publicly documented Flux software; watch deferred",
+  "basis": "Current source, accepted phase66 receipts, phase67 targeted/package evidence and official references; not a private-feature or every-menu audit",
+  "module_count": 20,
+  "remaining_task_count": 120,
+  "priorities": {
+    "P1": 80,
+    "P0": 28,
+    "P2": 12
+  },
+  "statuses": {
+    "补齐": 73,
+    "待核验": 2,
+    "待验证": 14,
+    "缺口": 16,
+    "已完成": 1,
+    "未形成闭环": 13,
+    "待外部接入": 2
+  },
+  "sections": [
+    {
+      "id": "UI",
+      "title": "工作台与像素复刻",
+      "baseline": "已有项目导航、Chat、视图标签、Inspector、工具面板、Roboto、快捷键与移动布局。",
+      "source_evidence": [
+        "wholeboard/web/workbench.mjs",
+        "wholeboard/web/workbench.css",
+        "docs/FLUX_PARITY.md"
+      ],
+      "tasks": [
+        {
+          "id": "UI-01",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "所有主视图逐屏像素校准",
+          "acceptance": "原理图、PCB、3D、Files、BOM、Pins、Nets、Library、Rules、Review逐项固定视口截图对比，记录容差。"
+        },
+        {
+          "id": "UI-02",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "完整交互状态像素",
+          "acceptance": "选中、多选、悬停、焦点、右键、弹窗、空白、加载、错误、只读、保存中均有参考与回归。",
+          "observed_issues": [
+            "Files preview at390px: the floating Project dock overlaps the lower preview area. Track alongside remaining visual/state fidelity; current report-render checks prove no page-width overflow, not unobstructed visibility of every paragraph."
+          ]
+        },
+        {
+          "id": "UI-03",
+          "priority": "P1",
+          "status": "待核验",
+          "name": "可写菜单与属性入口对齐",
+          "acceptance": "补齐当前匿名参考无法操作的启用菜单；逐项确认真实动作与快捷键，不按图猜行为。"
+        },
+        {
+          "id": "UI-04",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "复杂对象属性和上下文工具栏",
+          "acceptance": "按对象显示可编辑属性、单位、继承来源、校验和批量编辑，入口符合参考。"
+        },
+        {
+          "id": "UI-05",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "分屏、布局记忆与完整模块快捷键",
+          "acceptance": "刷新后恢复可解释布局；层级模块的快捷放置、取消和撤销一致。"
+        },
+        {
+          "id": "UI-06",
+          "priority": "P1",
+          "status": "待验证",
+          "name": "触控、输入法与键盘操作",
+          "acceptance": "实际Mac/Windows键盘、中文输入法、触控板/平板进行拖动、缩放、焦点与快捷键验证。"
+        }
+      ]
+    },
+    {
+      "id": "SCH",
+      "title": "原理图与通用图形编辑",
+      "baseline": "已有真实KiCad符号、层级图纸、端子、标签、手工导线、参数符号、多单元编辑。",
+      "source_evidence": [
+        "wholeboard/kicad/schematic_wires.py",
+        "wholeboard/parametric_symbols.py",
+        "wholeboard/web/workbench-wires.mjs",
+        "wholeboard/web/workbench.mjs"
+      ],
+      "tasks": [
+        {
+          "id": "SCH-01",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "完整原理图对象编辑",
+          "acceptance": "自动生成和手工生成的线、标签、节点、注释等都有一致选择、修改、删除和撤销。"
+        },
+        {
+          "id": "SCH-02",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "混合选择与剪贴板",
+          "acceptance": "器件、线、标签、模块边界混合移动/复制时，连线和逻辑网络正确；操作前显示冲突。"
+        },
+        {
+          "id": "SCH-03",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "复杂层级及多单元表现",
+          "acceptance": "跨层级接口、单元重排/显示与原生往返保持针脚编号和网络，不遗失单元。"
+        },
+        {
+          "id": "SCH-04",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "显式导线完整路由",
+          "acceptance": "所有声明连线给出已布/未布原因，复杂交叉、结点、线段切断重接均验证原生网表。"
+        },
+        {
+          "id": "SCH-05",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "功能框图可编辑",
+          "acceptance": "当前按器件前缀分组的框图升级为可保存的真实功能分组、接口、依赖和布局。"
+        }
+      ]
+    },
+    {
+      "id": "PART",
+      "title": "元器件库与供应链",
+      "baseline": "已有项目符号/封装/零件、安装库复制、模块发布与三方更新、价格库存表。",
+      "source_evidence": [
+        "wholeboard/project_library.py",
+        "wholeboard/modules.py",
+        "wholeboard/module_updates.py",
+        "wholeboard/jlc/parts.py"
+      ],
+      "tasks": [
+        {
+          "id": "PART-01",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "Datasheet生成后的可追溯校验",
+          "acceptance": "符号、焊盘、针脚功能、封装尺寸和3D模型对应原始页码/数据，错误明确阻止应用。"
+        },
+        {
+          "id": "PART-02",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "公共与私有器件目录",
+          "acceptance": "完整检索、筛选、权限、版本和复用，不止工作区内项目模块。"
+        },
+        {
+          "id": "PART-03",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "参数搜索及替代料",
+          "acceptance": "电压、电流、温度、精度、封装、生命周期等筛选；替代件核对电气和机械兼容性。"
+        },
+        {
+          "id": "PART-04",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "多供应商价格库存",
+          "acceptance": "保存数据来源、时间、币种、数量阶梯及失效状态；无法访问时明确未知。"
+        },
+        {
+          "id": "PART-05",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "库更新与旧映射修复",
+          "acceptance": "更细的差异预览、更新订阅/提醒、旧版本映射和冲突解决；本地改动保留。"
+        },
+        {
+          "id": "PART-06",
+          "priority": "P1",
+          "status": "待核验",
+          "name": "标准化器件数据兼容",
+          "acceptance": "审计并补齐Flux公开JEP30/PartModel等标准字段导入、验证和导出。"
+        }
+      ]
+    },
+    {
+      "id": "RULE",
+      "title": "统一规则系统",
+      "baseline": "已有全局线宽/间距/过孔规则、总线与阻抗声明、局部焊盘规则、KiCad规则输出。",
+      "source_evidence": [
+        "wholeboard/web/workbench.mjs",
+        "wholeboard/buses.py",
+        "wholeboard/kicad/dru.py",
+        "wholeboard/pad_edits.py"
+      ],
+      "tasks": [
+        {
+          "id": "RULE-01",
+          "priority": "P0",
+          "status": "缺口",
+          "name": "完整规则选择器编辑器",
+          "acceptance": "按器件、网络、对象类型、层和组合条件匹配；可预览命中对象并原子保存。"
+        },
+        {
+          "id": "RULE-02",
+          "priority": "P0",
+          "status": "缺口",
+          "name": "规则级联与优先级解释",
+          "acceptance": "系统默认、项目、组、对象规则有确定优先级；Inspector能解释最终值来源。"
+        },
+        {
+          "id": "RULE-03",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "规则与引擎一致性",
+          "acceptance": "网页预览、布线、DRC和制造文件实际使用同一最终规则值，避免显示和输出分离。"
+        },
+        {
+          "id": "RULE-04",
+          "priority": "P1",
+          "status": "缺口",
+          "name": "规则修饰与表达式",
+          "acceptance": "单位转换、引用、运算、条件和错误提示与约束求值形成可测试语义。"
+        },
+        {
+          "id": "RULE-05",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "更多对象局部规则",
+          "acceptance": "走线、过孔、铜皮、图元和组均能添加/删除规则，支持多对象修改与撤销。"
+        },
+        {
+          "id": "RULE-06",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "制造和团队规则集",
+          "acceptance": "可保存/复用/版本化规则配置，验证套用后实际变化和冲突。"
+        }
+      ]
+    },
+    {
+      "id": "PAD",
+      "title": "板形、焊盘、过孔与图元",
+      "baseline": "已有圆/槽/偏移孔、自定义SVG/DXF铜形、原生选择；实例焊盘工程验收已完成；恢复UI和更高级范围继续推进。",
+      "source_evidence": [
+        "wholeboard/pad_edits.py",
+        "wholeboard/pad_shapes.py",
+        "wholeboard/kicad/board.py",
+        "wholeboard/web/workbench-pad-editor.mjs"
+      ],
+      "tasks": [
+        {
+          "id": "PAD-01",
+          "priority": "P0",
+          "status": "已完成",
+          "name": "当前实例焊盘功能验收",
+          "acceptance": "完成主工作区内Codex真实编辑/审阅、GUI撤销重做及最终全量回归；保留旧项目。",
+          "completed_at_utc": "2026-11-16T11:34:24.552126+00:00",
+          "completion_scope": "Physical pad instance engineering acceptance only; PAD-02, richer padstacks and full pixels remain open.",
+          "evidence_receipt": "test-results/layout-pads-acceptance.json"
+        },
+        {
+          "id": "PAD-02",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "封装变更后的孤立覆盖恢复",
+          "acceptance": "提供专门界面识别和重置失配pad_overrides；当前需在设计源中显式删除对应键。",
+          "development_note": "Isolated inventory GET prototype passes1test; reset endpoint/UI not implemented or merged. ADR39."
+        },
+        {
+          "id": "PAD-03",
+          "priority": "P0",
+          "status": "缺口",
+          "name": "板内开窗一等对象",
+          "acceptance": "圆形、矩形和任意轮廓cutout可创建/编辑；布线、铜皮、DRC、3D和Gerber一致避让。"
+        },
+        {
+          "id": "PAD-04",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "复杂焊盘和分层padstack",
+          "acceptance": "梯形/倒角等形状、不同层不同铜形、热焊盘、复杂原生堆叠可完整编辑并保真。"
+        },
+        {
+          "id": "PAD-05",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "复杂铜形输入",
+          "acceptance": "不连通区域、未转轮廓的描边/文字有明确转换或分拆流程；不能静默填洞/连铜。"
+        },
+        {
+          "id": "PAD-06",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "高级过孔和铜环",
+          "acceptance": "盲/埋/微孔、叠孔、via-in-pad及选择层铜环有原生输出和完整几何/连通模型。"
+        },
+        {
+          "id": "PAD-07",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "分层桶壁接触证明",
+          "acceptance": "当前复杂padstack自动连通证明拒绝执行；补足实际桶壁接触模型、布线和DRC对照。"
+        },
+        {
+          "id": "PAD-08",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "普通PCB图形与丝印编辑",
+          "acceptance": "线、弧、曲线、多边形、文本和图案具备完整画布操作、规则、导出与撤销。"
+        }
+      ]
+    },
+    {
+      "id": "ROUTE",
+      "title": "布线与布局",
+      "baseline": "已有连续布线、差分对、过孔换层、铜编辑、绕障/有限推挤、选择网络原生布线、加长等长。",
+      "source_evidence": [
+        "wholeboard/web/workbench-routing.mjs",
+        "wholeboard/web/workbench-route-obstacles.mjs",
+        "wholeboard/selective_routing.py",
+        "wholeboard/route_tuning.py"
+      ],
+      "tasks": [
+        {
+          "id": "ROUTE-01",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "递归推挤和复杂交互",
+          "acceptance": "跨多段/多网络/弧线/过孔的推挤、碰撞回退和撤销保持已有受保护铜。"
+        },
+        {
+          "id": "ROUTE-02",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "绕线质量与路径优化",
+          "acceptance": "减少无用绕行、短碎线和折点；有固定样本的质量/耗时对比。"
+        },
+        {
+          "id": "ROUTE-03",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "缩短及重整已有走线",
+          "acceptance": "在受约束条件下缩短而不破坏连接；与现有加长调谐共享原生验证。"
+        },
+        {
+          "id": "ROUTE-04",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "多网络与多通道路由",
+          "acceptance": "总线多lane协同、差分扇出/锚点和跨层过孔组按共同约束完成。"
+        },
+        {
+          "id": "ROUTE-05",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "过孔动作预览与工具连续性",
+          "acceptance": "放置前显示换层结果、可行区和接触；取消/切工具不产生半次修改。"
+        },
+        {
+          "id": "ROUTE-06",
+          "priority": "P1",
+          "status": "待验证",
+          "name": "复杂板自动布局布线质量",
+          "acceptance": "BGA密集板、多电源板、大型连接器板有真实成功率、剩余问题和人工修正时间。"
+        }
+      ]
+    },
+    {
+      "id": "STACK",
+      "title": "高速接口、叠层与刚柔板",
+      "baseline": "已有13类接口预设、角色/极性、长度与skew声明、解析阻抗参考、全局物理叠层。",
+      "source_evidence": [
+        "wholeboard/interface_presets.py",
+        "wholeboard/buses.py",
+        "wholeboard/stackup.py",
+        "wholeboard/impedance.py"
+      ],
+      "tasks": [
+        {
+          "id": "STACK-01",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "接口识别和自定义映射",
+          "acceptance": "更多针脚别名、复用接口、协议版本/PHY和设备目标，允许用户核对映射。"
+        },
+        {
+          "id": "STACK-02",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "高速拓扑与参考平面检查",
+          "acceptance": "分支拓扑、跨层回流、参考层改变、长度/时延/阻抗共同检查，未知项可见。"
+        },
+        {
+          "id": "STACK-03",
+          "priority": "P1",
+          "status": "缺口",
+          "name": "区域叠层",
+          "acceptance": "同一板上不同区域的材料、厚度、覆盖膜和加强板贯穿2D/3D/导出。"
+        },
+        {
+          "id": "STACK-04",
+          "priority": "P1",
+          "status": "缺口",
+          "name": "Flex和Rigid-Flex编辑",
+          "acceptance": "柔性区、弯折轴、半径、角度、扭转和禁布规则可编辑并验证。"
+        },
+        {
+          "id": "STACK-05",
+          "priority": "P1",
+          "status": "缺口",
+          "name": "折叠状态验证",
+          "acceptance": "折叠后板/器件/外壳/线缆干涉和弯折限制有实际几何检查与输出。"
+        },
+        {
+          "id": "STACK-06",
+          "priority": "P2",
+          "status": "补齐",
+          "name": "更多叠层家族与材料保真",
+          "acceptance": "更多厂商参数、零厚度材料标签和单面/多层原生往返保持声明与实际区别。"
+        }
+      ]
+    },
+    {
+      "id": "MCAD",
+      "title": "机械建模、草图与装配",
+      "baseline": "已有FreeCAD实体、拉伸/旋转/放样/扫掠/抽壳、受约束草图、导入、材料、装配引用和干涉检查。",
+      "source_evidence": [
+        "wholeboard/freecad_model.py",
+        "wholeboard/sketch_program.py",
+        "wholeboard/assemblies.py",
+        "wholeboard/web/workbench-mechanical-features.mjs"
+      ],
+      "tasks": [
+        {
+          "id": "MCAD-01",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "图形化建模工作流",
+          "acceptance": "草图和特征的大部分参数直接在画布/Inspector可编辑，减少必须改CAD代码的步骤。"
+        },
+        {
+          "id": "MCAD-02",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "草图工具与约束完整性",
+          "acceptance": "覆盖更多实体/关系/尺寸，清楚显示自由度、冲突和参考几何，编辑后实体仍可重建。"
+        },
+        {
+          "id": "MCAD-03",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "特征历史编辑",
+          "acceptance": "插入、删除、抑制、重排、回滚与依赖预览有事务保护，不遗失后续特征。"
+        },
+        {
+          "id": "MCAD-04",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "持久拓扑命名",
+          "acceptance": "复杂几何改变后面/边引用稳定；歧义显示待修复，不能绑定错面。"
+        },
+        {
+          "id": "MCAD-05",
+          "priority": "P1",
+          "status": "缺口",
+          "name": "装配配合求解",
+          "acceptance": "同心、面对面、距离、角度和轴约束以真实求解器驱动，支持欠/过约束解释。"
+        },
+        {
+          "id": "MCAD-06",
+          "priority": "P1",
+          "status": "缺口",
+          "name": "机构运动",
+          "acceptance": "关节自由度、范围、姿态扫描、运动和自碰撞有实际求解/检查。"
+        },
+        {
+          "id": "MCAD-07",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "成型工艺特征",
+          "acceptance": "拔模、加强筋、卡扣、螺柱、倒扣及注塑/铸造检查成为可编辑特征和可追溯检查。"
+        },
+        {
+          "id": "MCAD-08",
+          "priority": "P1",
+          "status": "待验证",
+          "name": "图像到精确CAD",
+          "acceptance": "照片/草图/尺寸PDF得到模型的尺寸来源、误差及编辑能力形成真实任务集。"
+        }
+      ]
+    },
+    {
+      "id": "CO",
+      "title": "电机协同与3D",
+      "baseline": "已有真实STEP板/器件、外壳、关联装配、材料、爆炸/剖切/测量、导航与几何拾取。",
+      "source_evidence": [
+        "wholeboard/board_scene.py",
+        "wholeboard/freecad_assembly.py",
+        "wholeboard/web/workbench-cad.mjs",
+        "wholeboard/models3d.py"
+      ],
+      "tasks": [
+        {
+          "id": "CO-01",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "跨域改动联动",
+          "acceptance": "板尺寸/接口/孔位/器件高度变化时，显示受影响外壳、装配、固件和测试，并整体审阅应用。"
+        },
+        {
+          "id": "CO-02",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "多板产品与线缆接口",
+          "acceptance": "主板/子板/连接器/壳体之间共享坐标、接口和装配约束，变更一致传播。"
+        },
+        {
+          "id": "CO-03",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "公差链与装配空间",
+          "acceptance": "尺寸链、紧固件工具空间、插头插拔/线缆弯曲和装配顺序有明确输入与结果。"
+        },
+        {
+          "id": "CO-04",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "元件3D模型绑定管理",
+          "acceptance": "Datasheet/供应商模型与封装对齐，原点/旋转/缩放可编辑并随导出保留。"
+        },
+        {
+          "id": "CO-05",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "3D视图连续性与协作",
+          "acceptance": "跨工具保持对象/相机状态、持久视图预设、原生3D中的协作者位置/选区。"
+        },
+        {
+          "id": "CO-06",
+          "priority": "P2",
+          "status": "补齐",
+          "name": "更广CAD格式和材质",
+          "acceptance": "扩充格式/纹理/PBR及属性保真，区分网格和精确实体；双向往返有样例验证。"
+        }
+      ]
+    },
+    {
+      "id": "DRAW",
+      "title": "机械工程图与分析",
+      "baseline": "已有STEP/STL等输出、精确几何质量修正、曲率梳/事件、Zebra与表面曲率、静态干涉。",
+      "source_evidence": [
+        "wholeboard/cad_mass.py",
+        "wholeboard/freecad_curve_events.py",
+        "wholeboard/freecad_topology.py",
+        "wholeboard/web/workbench-surface-analysis.mjs"
+      ],
+      "tasks": [
+        {
+          "id": "DRAW-01",
+          "priority": "P1",
+          "status": "缺口",
+          "name": "可编辑工程图",
+          "acceptance": "多视图、剖视/局部视图、尺寸、标题栏和关联更新，PDF/DXF输出一致。"
+        },
+        {
+          "id": "DRAW-02",
+          "priority": "P1",
+          "status": "缺口",
+          "name": "GD&T与公差标注",
+          "acceptance": "基准、形位公差、配合、表面处理及工艺注释连接到模型和制造资料。"
+        },
+        {
+          "id": "DRAW-03",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "质量与惯性完整性",
+          "acceptance": "材料密度、质量、重心、惯量、截面属性的来源和单位明确，不从视觉材质推断。"
+        },
+        {
+          "id": "DRAW-04",
+          "priority": "P2",
+          "status": "补齐",
+          "name": "更广曲线/曲面分析",
+          "acceptance": "空间曲线、奇异点、G0/G1/G2及更复杂曲面有定义明确的覆盖和数值验证。"
+        },
+        {
+          "id": "DRAW-05",
+          "priority": "P2",
+          "status": "未形成闭环",
+          "name": "结构应力与变形",
+          "acceptance": "真实载荷、边界、材料、网格、求解结果和可复现文件，提供解析参考验证。"
+        },
+        {
+          "id": "DRAW-06",
+          "priority": "P2",
+          "status": "未形成闭环",
+          "name": "机械热传导与流体",
+          "acceptance": "导热、自然/强迫对流、风扇/风道/液冷压降接入可复现求解工作流。"
+        }
+      ]
+    },
+    {
+      "id": "AI",
+      "title": "AI原生工作台",
+      "baseline": "已有本地Codex、Agent/Chat、工程工具、画布标注图片、上下文文档、可审阅更改和部分原子撤销。",
+      "source_evidence": [
+        "wholeboard/codex_bridge.py",
+        "wholeboard/ai_changes.py",
+        "wholeboard/document_context.py",
+        "wholeboard/web/workbench-ai-files.mjs"
+      ],
+      "tasks": [
+        {
+          "id": "AI-01",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "跨设计/文件/工具的事务恢复",
+          "acceptance": "多文件和电路/CAD/工程输出一起提交/撤销；进程崩溃后可恢复到明确状态。"
+        },
+        {
+          "id": "AI-02",
+          "priority": "P0",
+          "status": "待验证",
+          "name": "真实工程任务评测集",
+          "acceptance": "从需求到原理图、板、壳、固件、导出的任务逐步评分，记录首次成功率和修正工作量。"
+        },
+        {
+          "id": "AI-03",
+          "priority": "P1",
+          "status": "缺口",
+          "name": "并行线程与分屏审阅",
+          "acceptance": "线程侧栏、独立任务进度、分屏查看、跨项目结果汇总及共享接口变更协调。"
+        },
+        {
+          "id": "AI-04",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "多模型和集成实测",
+          "acceptance": "现有其他provider适配器以实际账号运行，验证工具、图片、取消、错误和恢复；配置按需授权。"
+        },
+        {
+          "id": "AI-05",
+          "priority": "P1",
+          "status": "缺口",
+          "name": "语音输入",
+          "acceptance": "录音、转写、语言切换、编辑后发送和失败恢复，接入现有Composer。"
+        },
+        {
+          "id": "AI-06",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "可视模型与任务结果卡片",
+          "acceptance": "对话内可操作3D/图表/任务结果，能定位到真实对象/文件，保留可追溯来源。"
+        },
+        {
+          "id": "AI-07",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "工程推理与需求覆盖",
+          "acceptance": "需求、设计决定、工具证据、失败和下一步精确对应；不把生成文件当作验证通过。"
+        }
+      ]
+    },
+    {
+      "id": "DOC",
+      "title": "需求、知识与项目资产",
+      "baseline": "已有Knowledge、可编辑文件、Markdown/图片预览、文件树、引用和本地文本草稿恢复。",
+      "source_evidence": [
+        "wholeboard/file_catalog.py",
+        "wholeboard/document_context.py",
+        "wholeboard/web/workbench-files.mjs",
+        "wholeboard/web/workbench-drafts.mjs"
+      ],
+      "tasks": [
+        {
+          "id": "DOC-01",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "结构化需求与变更影响",
+          "acceptance": "功能/尺寸/功耗/成本等需求带单位、约束和测试追踪，修改后能列出受影响设计。"
+        },
+        {
+          "id": "DOC-02",
+          "priority": "P1",
+          "status": "缺口",
+          "name": "项目内交互页面",
+          "acceptance": "可保存的计算器、测试表、仪表盘与工程页面可受控执行并连接当前设计数据。"
+        },
+        {
+          "id": "DOC-03",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "更丰富文件预览与资产操作",
+          "acceptance": "CSV/JSON/XML/PDF/CAD等按类型展示，支持模型卡、打印、单位/大文件和来源状态。"
+        },
+        {
+          "id": "DOC-04",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "非文本草稿与跨设备恢复",
+          "acceptance": "Chat、弹窗、图形编辑和CAD未保存工作可恢复；不同账户/设备隔离和冲突明确。"
+        },
+        {
+          "id": "DOC-05",
+          "priority": "P2",
+          "status": "补齐",
+          "name": "发布资料生成",
+          "acceptance": "产品图/视频、使用说明和合规文档与确定版本关联；生成文档和正式认证结果区分。"
+        }
+      ]
+    },
+    {
+      "id": "FW",
+      "title": "固件与调试",
+      "baseline": "WholeBoard已有固件生成、PlatformIO构建与产物识别；网页中主要通过AI/Files使用。",
+      "source_evidence": [
+        "wholeboard/firmware.py",
+        "wholeboard/fwbuild.py",
+        "wholeboard/web/workbench.mjs"
+      ],
+      "tasks": [
+        {
+          "id": "FW-01",
+          "priority": "P0",
+          "status": "未形成闭环",
+          "name": "固件专门工作区",
+          "acceptance": "代码导航、工程设置、构建输出、错误定位和产物下载在同一网页流程完成。"
+        },
+        {
+          "id": "FW-02",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "引脚和外设硬件联动",
+          "acceptance": "实际MCU引脚、复用、时钟、地址和电源定义生成一致配置；换件/改网能更新并审阅。"
+        },
+        {
+          "id": "FW-03",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "框架与构建矩阵",
+          "acceptance": "ESP-IDF/Arduino及其他目标按选定范围实际编译、缓存工具链并记录版本。"
+        },
+        {
+          "id": "FW-04",
+          "priority": "P1",
+          "status": "未形成闭环",
+          "name": "单元测试和持续构建",
+          "acceptance": "每次变更运行测试/构建并关联源码版本，失败产物不被标记为可用。"
+        },
+        {
+          "id": "FW-05",
+          "priority": "P1",
+          "status": "未形成闭环",
+          "name": "烧录、串口和调试",
+          "acceptance": "本地代理/WebSerial等连接真实板，烧录、日志、断言/崩溃信息可回写项目。"
+        },
+        {
+          "id": "FW-06",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "Bring-up和升级流程",
+          "acceptance": "上电检查、测试固件、低功耗、Bootloader/OTA和回滚具备可执行步骤及硬件证据。"
+        }
+      ]
+    },
+    {
+      "id": "WIRE",
+      "title": "线束",
+      "baseline": "连接器和网络数据已有；本轮未在应用中找到完整的一等线束模型、编辑器与交付流程。",
+      "source_evidence": [
+        "wholeboard/design.py",
+        "wholeboard/terminals.py",
+        "wholeboard/web/workbench.mjs"
+      ],
+      "tasks": [
+        {
+          "id": "WIRE-01",
+          "priority": "P1",
+          "status": "未形成闭环",
+          "name": "线束数据模型与编辑",
+          "acceptance": "连接器端点、针脚映射、分支、线长和共享网络可编辑并检查错接。"
+        },
+        {
+          "id": "WIRE-02",
+          "priority": "P1",
+          "status": "未形成闭环",
+          "name": "端子和线材选型",
+          "acceptance": "匹配插壳、压接端子、线规、颜色、额定电流和电压降，提供来源。"
+        },
+        {
+          "id": "WIRE-03",
+          "priority": "P1",
+          "status": "未形成闭环",
+          "name": "线束图与物料表",
+          "acceptance": "针脚对针脚表、线束图、线缆BOM及装配记录由同一版本生成。"
+        },
+        {
+          "id": "WIRE-04",
+          "priority": "P1",
+          "status": "未形成闭环",
+          "name": "产品中的走线空间",
+          "acceptance": "线缆长度、弯曲半径、固定点和装配空间与3D装配关联。"
+        },
+        {
+          "id": "WIRE-05",
+          "priority": "P2",
+          "status": "待外部接入",
+          "name": "线束报价和订单跟踪",
+          "acceptance": "真实供应商响应、数量阶梯、交期、状态和交付凭据；当前不发起订单。"
+        }
+      ]
+    },
+    {
+      "id": "SIM",
+      "title": "电气仿真与系统验证",
+      "baseline": "已有ngspice工作点/瞬态及图表、部分功耗热估算和解析阻抗；不等于完整多物理场求解。",
+      "source_evidence": [
+        "wholeboard/ngspice.py",
+        "wholeboard/sim.py",
+        "wholeboard/simlab.py",
+        "wholeboard/impedance.py",
+        "wholeboard/web/workbench.mjs"
+      ],
+      "tasks": [
+        {
+          "id": "SIM-01",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "仿真模型覆盖和管理",
+          "acceptance": "真实模型、假设模型和无模型分开；器件模型来源、版本和适用条件清楚。"
+        },
+        {
+          "id": "SIM-02",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "仿真设置与波形工作台",
+          "acceptance": "AC/DC扫描、瞬态参数、探针、比较、游标、导出和重跑可编辑且绑定设计版本。"
+        },
+        {
+          "id": "SIM-03",
+          "priority": "P1",
+          "status": "未形成闭环",
+          "name": "实际布线SI和PI",
+          "acceptance": "S参数、TDR、串扰、眼图、PDN/压降使用实际几何和模型求解，提供可复现证据。"
+        },
+        {
+          "id": "SIM-04",
+          "priority": "P2",
+          "status": "未形成闭环",
+          "name": "RF/天线和EMC",
+          "acceptance": "电磁/辐射/近场与EMC审阅接入真实工具；规则建议与实际求解分开。"
+        },
+        {
+          "id": "SIM-05",
+          "priority": "P2",
+          "status": "补齐",
+          "name": "系统功耗、电池和电机",
+          "acceptance": "负载时序、温度、效率、运行时间及电机/传动参数可追踪并验证模型。"
+        },
+        {
+          "id": "SIM-06",
+          "priority": "P2",
+          "status": "未形成闭环",
+          "name": "自主验证与FMEA",
+          "acceptance": "需求覆盖、故障模式、风险和测试结果按版本联动；缺证据明确未验证。"
+        },
+        {
+          "id": "SIM-07",
+          "priority": "P2",
+          "status": "未形成闭环",
+          "name": "机器人/飞行动力学扩展",
+          "acceptance": "按当前Flux公开范围登记；需明确状态/输入/模型，真实求解、曲线、解析校核和限制。"
+        }
+      ]
+    },
+    {
+      "id": "MFG",
+      "title": "制造和供应商交付",
+      "baseline": "已有原生制造文件、BOM/CPL、费用估算；独立production MVP含手动交接/供应商门户，未验证工厂API实单。",
+      "source_evidence": [
+        "wholeboard/web/workbench-manufacturing.mjs",
+        "wholeboard/production/service.py",
+        "docs/production-mvp-result.md"
+      ],
+      "tasks": [
+        {
+          "id": "MFG-01",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "完整发布包与版本冻结",
+          "acceptance": "板/壳/固件/线束/BOM/测试资料统一版本和清单，记录检查和来源后生成发布包。"
+        },
+        {
+          "id": "MFG-02",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "完整DFM流程",
+          "acceptance": "板厂、装配、3D打印/CNC/注塑配置的限制和真实检查可追溯。"
+        },
+        {
+          "id": "MFG-03",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "拼板与制造图工作流",
+          "acceptance": "现有引擎接入可编辑网页流程，核验拼板、工艺边、定位、制造注释和导出。"
+        },
+        {
+          "id": "MFG-04",
+          "priority": "P1",
+          "status": "待外部接入",
+          "name": "工厂正式报价与状态同步",
+          "acceptance": "JLCPCB/PCBWay等账号接口、真实报价、交期及订单状态实测；不把估算/门户当实单。"
+        },
+        {
+          "id": "MFG-05",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "采购与替代料变更",
+          "acceptance": "BOM数量阶梯、DNP、缺货替代、成本变化与设计批准/版本关联。"
+        },
+        {
+          "id": "MFG-06",
+          "priority": "P2",
+          "status": "待验证",
+          "name": "机械加工和外部交付",
+          "acceptance": "机械询价、加工格式及完整交付/回执按能力接入；不在本次盘点中下单。"
+        }
+      ]
+    },
+    {
+      "id": "COLLAB",
+      "title": "协作、历史与项目管理",
+      "baseline": "已有账号、角色、分享链接、评论、presence、实时保存、克隆和历史恢复。",
+      "source_evidence": [
+        "wholeboard/collaboration.py",
+        "wholeboard/ai_changes.py",
+        "wholeboard/revisions.py",
+        "wholeboard/web/workbench-collab.mjs"
+      ],
+      "tasks": [
+        {
+          "id": "COLLAB-01",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "并发修改合并",
+          "acceptance": "多人修改独立对象可合并，同一对象冲突明确解决；文件/CAD和电路保持一致。"
+        },
+        {
+          "id": "COLLAB-02",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "持久跨类型撤销和历史",
+          "acceptance": "跨刷新、文件/CAD/设计混合改动的撤销、恢复和可视对比保留完整事务来源。"
+        },
+        {
+          "id": "COLLAB-03",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "组织和团队工作区",
+          "acceptance": "团队成员、共享库、项目层级、权限继承和管理流程完整。"
+        },
+        {
+          "id": "COLLAB-04",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "评论与通知",
+          "acceptance": "真实多人、3D锚点、指派、提醒、更新通知与版本定位。"
+        },
+        {
+          "id": "COLLAB-05",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "分支/派生和版本比较",
+          "acceptance": "将已有克隆/恢复补成更丰富的可视修订工作流，保持原始工件。"
+        }
+      ]
+    },
+    {
+      "id": "HOST",
+      "title": "自托管交付与耐久性",
+      "baseline": "已有本地FastAPI服务和wheel安装包验证；目前复用了开发机依赖与原生工具。",
+      "source_evidence": [
+        "scripts/verify-package.py",
+        "run-workbench.sh",
+        "wholeboard/server.py",
+        "wholeboard/project.py"
+      ],
+      "tasks": [
+        {
+          "id": "HOST-01",
+          "priority": "P0",
+          "status": "待验证",
+          "name": "干净主机安装",
+          "acceptance": "在全新Linux主机完成安装、原生依赖发现、启动和完整任务；补充macOS/Windows支持矩阵。"
+        },
+        {
+          "id": "HOST-02",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "可复现部署包",
+          "acceptance": "容器/Compose或等价安装方案、锁定依赖、持久卷、反向代理及运维文档实测。"
+        },
+        {
+          "id": "HOST-03",
+          "priority": "P0",
+          "status": "待验证",
+          "name": "备份和恢复",
+          "acceptance": "项目、库、配置、历史和模型完整备份；恢复到新实例并核对内容/权限/引用。"
+        },
+        {
+          "id": "HOST-04",
+          "priority": "P0",
+          "status": "待验证",
+          "name": "崩溃/断电/多进程恢复",
+          "acceptance": "关键提交和工程任务故障注入；任务状态、原始工件和幂等重试准确。"
+        },
+        {
+          "id": "HOST-05",
+          "priority": "P0",
+          "status": "补齐",
+          "name": "服务端长任务管理",
+          "acceptance": "工程作业队列、取消、超时、资源限制、日志和重连；多worker行为明确。"
+        },
+        {
+          "id": "HOST-06",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "远程使用和运维",
+          "acceptance": "HTTPS/代理、鉴权、版本升级迁移、工具版本诊断和基础指标完整验证。"
+        }
+      ]
+    },
+    {
+      "id": "API",
+      "title": "开放接口与互通",
+      "baseline": "已有HTTP/MCP、KiCad原生和库导入、CAD/网格/图形导入、制造与机械导出。",
+      "source_evidence": [
+        "wholeboard/mcp.py",
+        "wholeboard/kicad/importer.py",
+        "wholeboard/mechanical_assets.py",
+        "wholeboard/drawing_assets.py",
+        "wholeboard/web/workbench-files.mjs"
+      ],
+      "tasks": [
+        {
+          "id": "API-01",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "工程项目双向往返",
+          "acceptance": "已有KiCad项目及外部编辑往返覆盖网络、图纸、铜、规则、库、3D和身份，记录不可保真部分。"
+        },
+        {
+          "id": "API-02",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "更多ECAD/MCAD格式",
+          "acceptance": "按官方公开格式逐个建兼容矩阵，真实导入/编辑/导出；专有格式明确依赖。"
+        },
+        {
+          "id": "API-03",
+          "priority": "P1",
+          "status": "缺口",
+          "name": "稳定开放对象API",
+          "acceptance": "对象查询/创建/修改、事务、权限、版本和事件有公开接口与兼容承诺。"
+        },
+        {
+          "id": "API-04",
+          "priority": "P1",
+          "status": "缺口",
+          "name": "设计表达式和用户扩展",
+          "acceptance": "与规则系统统一的表达式/对象类型API、受控扩展、错误与资源管理。"
+        },
+        {
+          "id": "API-05",
+          "priority": "P1",
+          "status": "补齐",
+          "name": "外部开发服务集成",
+          "acceptance": "用户代码仓库、外部工程工具、服务凭据和导入产物有清晰授权及版本来源。"
+        }
+      ]
+    },
+    {
+      "id": "QA",
+      "title": "完整复刻的最终验收",
+      "baseline": "已有大量Python/Node/浏览器与实际原生文件测试，且各阶段保留独立验收记录。",
+      "source_evidence": [
+        "tests",
+        "scripts/browser-checks.mjs",
+        "test-results/pad-shapes-acceptance.json",
+        "WORK_STATE.md"
+      ],
+      "tasks": [
+        {
+          "id": "QA-01",
+          "priority": "P0",
+          "status": "待验证",
+          "name": "功能×交互状态覆盖矩阵",
+          "acceptance": "每个Flux公开功能映射到入口、数据、真实引擎、撤销和证据；缺口有稳定ID。"
+        },
+        {
+          "id": "QA-02",
+          "priority": "P0",
+          "status": "待验证",
+          "name": "真实完整产品软件链路",
+          "acceptance": "多个通用案例完成需求→电路→PCB→机械→固件→验证→交付包，不止单功能样例。"
+        },
+        {
+          "id": "QA-03",
+          "priority": "P0",
+          "status": "待验证",
+          "name": "完整像素验收",
+          "acceptance": "建立可复现参考图和差异报告；尚未覆盖的可写/付费状态明确待核验。"
+        },
+        {
+          "id": "QA-04",
+          "priority": "P1",
+          "status": "待验证",
+          "name": "大型工程和长时间使用",
+          "acceptance": "千级器件/大量网络/大型装配/长历史下测帧率、内存、检索、保存和工程任务耗时。"
+        },
+        {
+          "id": "QA-05",
+          "priority": "P1",
+          "status": "待验证",
+          "name": "真实多用户/多浏览器/设备",
+          "acceptance": "账号切换、并发编辑、断网重连、权限变化和实际输入设备进行端到端验收。"
+        },
+        {
+          "id": "QA-06",
+          "priority": "P1",
+          "status": "待验证",
+          "name": "数据保真与旧项目回归",
+          "acceptance": "历史项目加载/升级/恢复继续校验原始文件与引用，不以新缓存替换旧证据。"
+        }
+      ]
+    }
+  ],
+  "official_references": {
+    "Flux公开功能目录": "https://docs.flux.ai/reference",
+    "规则/选择器/继承": "https://docs.flux.ai/reference/pcb-rules",
+    "PCB与内开窗": "https://docs.flux.ai/reference/reference-pcb-editor",
+    "刚柔板": "https://docs.flux.ai/reference/flex-and-rigid-flex",
+    "机械设计": "https://docs.flux.ai/reference/mechanical-design",
+    "机械分析": "https://docs.flux.ai/reference/mechanical-analysis",
+    "机械工程图": "https://docs.flux.ai/reference/mechanical-drawings-and-exports",
+    "并行线程": "https://docs.flux.ai/reference/parallel-threads",
+    "项目交互页面": "https://docs.flux.ai/reference/project-files",
+    "固件": "https://docs.flux.ai/reference/firmware",
+    "线束": "https://docs.flux.ai/reference/wire-harness-design",
+    "仿真": "https://docs.flux.ai/reference/simulation"
+  },
+  "initial_audit_at_utc": "2026-11-16T10:33:55.593276+00:00",
+  "updated_at_utc": "2026-11-16T11:34:24.552384+00:00",
+  "task_count": 121,
+  "completed_task_count": 1
+}

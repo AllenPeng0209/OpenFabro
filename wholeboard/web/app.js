@@ -1,4 +1,4 @@
-// WholeBoard front end.
+// OpenFabro front end.
 "use strict";
 
 const $ = s => document.querySelector(s);
@@ -104,13 +104,13 @@ function renderSetup() {
     row(st.ai.ready, "AI", st.ai.ready ? st.ai.label : "Add a Claude API key or a local OpenAI-compatible server, or design from Claude Code.", st.ai.ready ? "" : open),
     el("li", {}, el("span", { class: "chip " + (S.cc?.added ? "ok" : "") }, S.cc?.added ? "added" : "optional"),
       el("span", { class: "k" }, "Claude Code"),
-      el("span", { class: "v" }, S.cc?.added ? "WholeBoard is in your Claude Code: ask it for a board." : "Design boards from Claude Code, on your Claude plan."),
+      el("span", { class: "v" }, S.cc?.added ? "OpenFabro is in your Claude Code: ask it for a board." : "Design boards from Claude Code, on your Claude plan."),
       el("button", { class: "btn ghost", type: "button", onclick: () => openClaudeCode() }, S.cc?.added ? "How" : "Set up")),
   ));
 }
 
 // ------------------------------------------------------------------ design with Claude Code
-const CC_EXAMPLE = "Design a board with WholeBoard: a USB-C powered ESP32-C3 sensor node with a BME280 on I²C, a status LED and a 4-pin header. About 40 × 30 mm.";
+const CC_EXAMPLE = "Design a board with OpenFabro: a USB-C powered ESP32-C3 sensor node with a BME280 on I²C, a status LED and a 4-pin header. About 40 × 30 mm.";
 
 async function loadClaudeCode() {
   try { S.cc = await api("/api/claude-code"); } catch { return; }
@@ -147,7 +147,7 @@ function renderClaudeCode() {
   if (!cc) { box.append(el("li", {}, el("p", {}, "Looking for Claude Code on this computer…"))); return; }
   const step = (done, title, ...body) => el("li", { class: done ? "done" : "" }, el("h3", {}, title), ...body);
   const status = (ok, text) => el("span", { class: "chip " + (ok ? "ok" : "warn") }, text);
-  const elsewhere = cc.local ? "" : el("p", {}, "You're viewing WholeBoard from another computer. Do this on the computer running WholeBoard.");
+  const elsewhere = cc.local ? "" : el("p", {}, "You're viewing OpenFabro from another computer. Do this on the computer running OpenFabro.");
   let adding = "";
   if (cc.local && cc.claude && !cc.added) {
     adding = el("button", { class: "btn primary small", type: "button" }, "Add it for me");
@@ -155,7 +155,7 @@ function renderClaudeCode() {
       adding.disabled = true; adding.textContent = "Adding…";
       try {
         await api("/api/claude-code/add", { method: "POST" });
-        toast("WholeBoard is added to Claude Code. Start a new Claude Code session to use it.", "ok");
+        toast("OpenFabro is added to Claude Code. Start a new Claude Code session to use it.", "ok");
       } catch (e) { toast(e.message, "error", 12000); }
       loadClaudeCode();
     };
@@ -165,14 +165,14 @@ function renderClaudeCode() {
     step(!!cc.claude, ["Install Claude Code and sign in", cc.local ? status(!!cc.claude, cc.claude ? "installed" : "not found") : ""],
       el("p", {}, "Install Claude Code, then run ", el("code", {}, "claude"), " in a terminal once and sign in with your Claude account."),
       cc.claude ? el("p", {}, "Found at ", el("code", {}, cc.claude), ".") : ""),
-    step(cc.added, ["Add WholeBoard to Claude Code", cc.local ? status(cc.added, cc.added ? "added" : "not yet") : ""],
-      el("p", {}, "Once only. Run this in a terminal, or let WholeBoard do it:"),
+    step(cc.added, ["Add OpenFabro to Claude Code", cc.local ? status(cc.added, cc.added ? "added" : "not yet") : ""],
+      el("p", {}, "Once only. Run this in a terminal, or let OpenFabro do it:"),
       cmdBox(cc.command), elsewhere,
       adding ? el("div", { class: "row" }, adding) : ""),
-    step(true, ["Keep WholeBoard running", status(true, "running")],
+    step(true, ["Keep OpenFabro running", status(true, "running")],
       el("p", {}, "Claude Code reaches it at ", el("code", {}, cc.url), ". Start a new Claude Code session after adding it, or check it with ", el("code", {}, "/mcp"), ".")),
     step(!!cc.last_used, "Ask Claude Code for a board",
-      el("p", {}, "Describe the board and mention WholeBoard. For example:"),
+      el("p", {}, "Describe the board and mention OpenFabro. For example:"),
       cmdBox(CC_EXAMPLE),
       el("p", {}, "Claude Code asks you its questions in the terminal and gives you the board's link.")),
     step(!!cc.last_used, "Watch it here",
@@ -293,6 +293,7 @@ function connect() {
 
 // ------------------------------------------------------------------ events
 function handleEvent(e, replay) {
+  if (e.type === "presence") return;
   if (e.seq <= S.lastSeq) return;
   S.lastSeq = e.seq;
   if (["chat", "tool", "question", "finish"].includes(e.type)) chatStamp(e.t);
@@ -411,7 +412,7 @@ function showUsage(u) {
     // a board Claude Code designed: its tokens count against the user's Claude plan, not here
     chip.hidden = S.project?.driver !== "claude-code";
     chip.textContent = "Claude Code";
-    chip.title = "Designed in Claude Code through WholeBoard's MCP tools. Its tokens count against your Claude plan.";
+    chip.title = "Designed in Claude Code through OpenFabro's MCP tools. Its tokens count against your Claude plan.";
     return;
   }
   const k = n => n >= 1e6 ? (n / 1e6).toFixed(2) + "M" : n >= 1e3 ? Math.round(n / 1e3) + "k" : String(n);
@@ -839,13 +840,13 @@ const findings = (xs, source, severity) => xs.map(x => finding(x, { source, seve
 
 // What each check does, for findings that carry no rule of their own.
 const CHECK_HELP = {
-  import: ["Import", "WholeBoard reads the KiCad project's schematic and board, and lists what it could not bring across or what must be fixed before the board can be built."],
-  netlist: ["Design check", "Before anything is drawn, WholeBoard checks the design: each footprint exists and its pads match the symbol's pins, each net joins at least two pins, and each part is in stock at JLCPCB."],
+  import: ["Import", "OpenFabro reads the KiCad project's schematic and board, and lists what it could not bring across or what must be fixed before the board can be built."],
+  netlist: ["Design check", "Before anything is drawn, OpenFabro checks the design: each footprint exists and its pads match the symbol's pins, each net joins at least two pins, and each part is in stock at JLCPCB."],
   erc: ["Electrical rules check", "KiCad reads the schematic for outputs driving each other, inputs left floating, power pins with nothing to power them and wires that go nowhere."],
   drc: ["Design rule check", "KiCad measures the finished board against JLCPCB's limits: copper spacing, track widths, hole sizes, the board edge and the silkscreen."],
-  checks: ["Board checks", "WholeBoard works out the current in each track (from the simulation, or estimated), then how much it heats, how much voltage it loses, and how far each chip's supply pins are from a decoupling capacitor."],
+  checks: ["Board checks", "OpenFabro works out the current in each track (from the simulation, or estimated), then how much it heats, how much voltage it loses, and how far each chip's supply pins are from a decoupling capacitor."],
   impedance: ["Controlled impedance", "Traces that need a set impedance (USB, Ethernet, fast buses) are measured: their width, length, vias and stubs, and how closely the pairs and buses match in length."],
-  mains: ["Mains spacing", "Mains voltage needs wide gaps. WholeBoard measures the clearance through the air and the creepage along the board between mains copper and everything else."],
+  mains: ["Mains spacing", "Mains voltage needs wide gaps. OpenFabro measures the clearance through the air and the creepage along the board between mains copper and everything else."],
   case: ["Case fit", "The board is fitted into the chosen case: the parts must clear the lid, and the connectors must line up with holes in its walls."],
   heat: ["Heat in the box", "How warm the air and the parts get inside the enclosure, from the power the board uses and how much heat leaves through the walls and vents."],
   review: ["Visual review", "The AI looks at the 3D renders of the board as a reviewer would, for parts, connectors, LEDs and buttons that are missing, crowded or facing the wrong way."],
@@ -986,7 +987,7 @@ const RENDER = {
     return card(v.title, host, { fill: true });
   },
   viewer(v) {
-    // The viewer runs on the WholeBoard machine, so point at whatever host this page was loaded from.
+    // The viewer runs on the OpenFabro machine, so point at whatever host this page was loaded from.
     const url = v.port ? `${location.protocol}//${location.hostname}:${v.port}/` + (v.token ? `?token=${encodeURIComponent(v.token)}` : "") : v.url;
     const frame = el("iframe", { class: "viewer-frame", src: url, title: "TraceMaker live viewer" });
     return card(v.title, frame, { fill: true, right: el("a", { href: url, target: "_blank" }, "open in new tab") });
@@ -1382,7 +1383,7 @@ function buildSimLab(scene, st, host, side, tourBtn, recBtn) {
     const bx = dyn.box_heat;
     if (!bx) return "";
     return bx.on ? `Inside air ${bx.air_c.toFixed(1)} °C. With the cooler walls round it the board sees ${bx.board_env_c.toFixed(1)} °C, and the circuit is simulated at that.`
-      + (scene.box.kind === "suggested" ? " No enclosure is designed yet, so this is the box WholeBoard would suggest." : "")
+      + (scene.box.kind === "suggested" ? " No enclosure is designed yet, so this is the box OpenFabro would suggest." : "")
       : `In ${scene.box.name} the air inside would reach ${bx.air_c.toFixed(0)} °C.`;
   };
   const drawAdjust = () => {
@@ -1482,7 +1483,7 @@ function flashEsp(b) {
   const out = el("div", { class: "flash" }), log = el("pre", { class: "log-pre", hidden: true });
   const btn = el("button", { class: "btn primary", type: "button" }, `Flash over USB (${b.chip})`);
   const why = !("serial" in navigator) ? "Your browser has no Web Serial: use Chrome, Edge or Opera on a desktop." :
-    !window.isSecureContext ? `Web Serial needs a secure page: open WholeBoard as http://localhost:${location.port || 80} on the computer the board is plugged into.` : "";
+    !window.isSecureContext ? `Web Serial needs a secure page: open OpenFabro as http://localhost:${location.port || 80} on the computer the board is plugged into.` : "";
   btn.disabled = !!why;
   btn.onclick = async () => {
     log.hidden = false; log.textContent = "";
@@ -1897,7 +1898,7 @@ async function saveSettings() {
   await loadStatus(true);
 }
 
-// Search the computer running WholeBoard (or the other computers in its subnet) for model servers
+// Search the computer running OpenFabro (or the other computers in its subnet) for model servers
 // and offer each chat model.
 async function findLocalModels(lan = false) {
   const form = $("#settingsForm"), out = $("#findLocalOut"), box = $("#localModels");
@@ -1910,7 +1911,7 @@ async function findLocalModels(lan = false) {
   box.hidden = false;
   box.replaceChildren(el("div", { class: "lm searching", role: "status" }, el("span", { class: "spinner" }), lan
     ? "Checking every address in this computer's subnet for model servers… this takes a few seconds."
-    : "Looking for Ollama, LM Studio, llama.cpp, Strata, vLLM, Jan and other model servers on the computer running WholeBoard…"));
+    : "Looking for Ollama, LM Studio, llama.cpp, Strata, vLLM, Jan and other model servers on the computer running OpenFabro…"));
   let r;
   try {
     // keep the spinner up long enough to be seen when every server answers at once
@@ -1932,7 +1933,7 @@ async function findLocalModels(lan = false) {
       ? `No model servers answered on ${nets}. Ollama, LM Studio and llama.cpp only listen on their own computer `
         + "unless told to serve the network: set OLLAMA_HOST=0.0.0.0 for Ollama, turn on Serve on Local Network in "
         + "LM Studio, or start llama.cpp or Strata with --host 0.0.0.0."
-      : "No local models found. Start Ollama, LM Studio or llama.cpp on the computer running WholeBoard, "
+      : "No local models found. Start Ollama, LM Studio or llama.cpp on the computer running OpenFabro, "
         + "or type its Server URL below, then search again.";
     return;
   }
@@ -1942,7 +1943,7 @@ async function findLocalModels(lan = false) {
   const current = field("provider").value === "openai" ? [field("openai_base_url").value, field("openai_model").value] : [];
   for (const m of r.models) {
     const tools = m.tools === true ? el("span", { class: "chip ok", title: "The model supports tool calling" }, "tools")
-      : m.tools === false ? el("span", { class: "chip warn", title: "WholeBoard needs tool calling; this model may not design boards" }, "no tools") : "";
+      : m.tools === false ? el("span", { class: "chip warn", title: "OpenFabro needs tool calling; this model may not design boards" }, "no tools") : "";
     const row = el("div", { class: "lm" + (current[0] === m.base_url && current[1] === m.model ? " on" : "") },
       el("div", { class: "n" }, el("b", { title: m.model }, m.model), el("span", {}, [m.server, m.detail].filter(Boolean).join(" · "))),
       tools,
@@ -1963,7 +1964,7 @@ async function findLocalModels(lan = false) {
 }
 
 // ------------------------------------------------------------------ attention: tab title, icon, notifications
-const ICON = (() => { const i = new Image(); i.src = "/static/icon.svg"; return i; })();
+const ICON = (() => { const i = new Image(); i.src = "/static/openfabro-mascot.png"; return i; })();
 let unseen = null;          // "done" or "error" that happened while the page was in the background
 
 // The tab's title and icon say what the open board needs: an answer, a running build, or a result.
@@ -1971,9 +1972,9 @@ function signal() {
   const st = S.pid ? S.project?.status : null;
   const mark = S.pending.size ? ["?", "#e0a23a"] : unseen === "error" ? ["!", "#ef6a63"] : unseen === "done" ? ["✓", "#37b37b"]
     : st === "running" ? ["…", "#6aa5f5"] : null;
-  document.title = (mark ? `(${mark[0]}) ` : "") + (S.pid && S.title ? `${S.title} – ` : "") + "WholeBoard";
+  document.title = (mark ? `(${mark[0]}) ` : "") + (S.pid && S.title ? `${S.title} – ` : "") + "OpenFabro";
   const link = document.querySelector('link[rel="icon"]');
-  if (!mark) { link.href = "/static/icon.svg"; return; }
+  if (!mark) { link.href = "/static/openfabro-mascot.png"; return; }
   const draw = () => {
     const c = document.createElement("canvas"); c.width = c.height = 64;
     const g = c.getContext("2d");
@@ -1993,7 +1994,7 @@ function notifyUser(title, body) {
   if (/ready|error/i.test(title)) unseen = /error/i.test(title) ? "error" : "done";
   signal();
   if (!notifyOn() || !("Notification" in window) || Notification.permission !== "granted") return;
-  const n = new Notification(title, { body: (body || "").slice(0, 180), icon: "/static/icon.svg", tag: "wholeboard-" + S.pid });
+  const n = new Notification(title, { body: (body || "").slice(0, 180), icon: "/static/openfabro-mascot.png", tag: "wholeboard-" + S.pid });
   n.onclick = () => { window.focus(); n.close(); };
 }
 
@@ -2121,8 +2122,8 @@ function init() {
   });
   const netState = () => {
     const a = S.status?.auth || {};
-    $("#netState").textContent = (a.enabled ? "A password is set." : "No password: anyone who can reach this computer can use WholeBoard.")
-      + (a.local ? "" : " Only the computer running WholeBoard can change it.");
+    $("#netState").textContent = (a.enabled ? "A password is set." : "No password: anyone who can reach this computer can use OpenFabro.")
+      + (a.local ? "" : " Only the computer running OpenFabro can change it.");
     for (const id of ["#netSet", "#netClear", "#netPassword"]) $(id).disabled = !a.local;
   };
   $("#settingsTabs").addEventListener("click", e => { if (e.target.dataset.tab === "net") netState(); });
@@ -2141,7 +2142,7 @@ function init() {
     } catch (err) { $("#netMsg").textContent = err.message; }
   };
   $("#netSet").onclick = () => { const v = $("#netPassword").value; if (v.length < 6) { $("#netMsg").textContent = "Use at least 6 characters."; return; } setPw(v); };
-  $("#netClear").onclick = async () => { if (await ask("Remove the password? Anyone on the network can then use WholeBoard.", { ok: "Remove", danger: true })) setPw(""); };
+  $("#netClear").onclick = async () => { if (await ask("Remove the password? Anyone on the network can then use OpenFabro.", { ok: "Remove", danger: true })) setPw(""); };
   $("#historyBtn").onclick = () => openHistory().catch(e => { $("#historyList").textContent = e.message; });
   $("#wsTitle").addEventListener("dblclick", startRename);
   $("#renameBtn").onclick = startRename;
@@ -2201,7 +2202,7 @@ function init() {
   const canNotify = "Notification" in window && window.isSecureContext;
   nt.checked = canNotify && notifyOn() && Notification.permission === "granted";
   nt.disabled = !canNotify;
-  if (!canNotify) $("#notifyHint").textContent = "The tab's title and icon always change. Desktop notifications need WholeBoard opened as http://localhost on this computer.";
+  if (!canNotify) $("#notifyHint").textContent = "The tab's title and icon always change. Desktop notifications need OpenFabro opened as http://localhost on this computer.";
   nt.onchange = async () => {
     let on = nt.checked;
     if (on && Notification.permission !== "granted") on = (await Notification.requestPermission()) === "granted";

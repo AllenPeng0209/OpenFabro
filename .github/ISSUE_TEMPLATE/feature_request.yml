@@ -1,0 +1,23 @@
+name: Feature request
+description: Propose a focused improvement to the engineering workflow.
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Engineering or user problem
+      description: Describe the workflow and the limitation you encounter.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: What should a user be able to do, and how would success be verified?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and references
+      description: Include relevant open formats, tool constraints, or a minimal example.

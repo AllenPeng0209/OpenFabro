@@ -1,8 +1,8 @@
 # Exchange designs with Altium
 
-## WholeBoard to Altium
+## OpenFabro to Altium
 
-WholeBoard's output is an ordinary KiCad project (in `exports/` as a zip, or the `revN` folder).
+OpenFabro's output is an ordinary KiCad project (in `exports/` as a zip, or the `revN` folder).
 
 1. In Altium Designer, choose *File → Import Wizard → KiCad Design Files*.
 2. Choose the `.kicad_pro`.
@@ -11,13 +11,13 @@ The importer is an Altium extension; install it from *Extensions and Updates* if
 Schematic, board, net classes and rules come across. Check the design rules and polygon pours after the import,
 since the two tools treat them differently.
 
-## Altium to WholeBoard
+## Altium to OpenFabro
 
 1. In KiCad, use *File → Import → Non-KiCad Project…*, which reads `.PrjPcb`, `.SchDoc` and `.PcbDoc`.
 2. Save it as a KiCad project.
-3. In WholeBoard, use [Import KiCad project…](import-kicad.md).
+3. In OpenFabro, use [Import KiCad project…](import-kicad.md).
 
-Footprints from Altium libraries arrive as project-specific footprints, which WholeBoard asks to replace with
+Footprints from Altium libraries arrive as project-specific footprints, which OpenFabro asks to replace with
 standard KiCad ones.
 
 !!! note

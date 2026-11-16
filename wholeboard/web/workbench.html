@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#212121">
+  <meta name="description" content="OpenFabro: the open-source AI hardware engineer for circuits, enclosures and complete devices.">
+  <title>OpenFabro — AI hardware engineer</title>
+  <link rel="icon" type="image/png" href="/static/openfabro-mascot.png">
+  <link rel="stylesheet" href="/static/workbench.css">
+  <link rel="stylesheet" href="/static/workbench-shortcuts.css">
+  <link rel="stylesheet" href="/static/workbench-objects.css">
+  <link rel="stylesheet" href="/static/workbench-parametric.css">
+  <link rel="stylesheet" href="/static/workbench-files.css">
+  <link rel="stylesheet" href="/static/workbench-stackup.css">
+  <link rel="stylesheet" href="/static/workbench-markup.css">
+  <link rel="stylesheet" href="/static/workbench-navigation.css">
+  <script>window.wbZoom = () => 1;</script>
+  <script src="/static/board.js" defer></script>
+  <script src="/static/mesh3d.js" defer></script>
+  <script src="/static/plot.js" defer></script>
+  <script type="module" src="/static/workbench.mjs"></script>
+</head>
+<body>
+  <a class="skip-link" href="#viewContent">Skip to design</a>
+  <header class="project-bar">
+    <button class="brand-button" id="mainMenuButton" title="OpenFabro menu" aria-label="Project menu" aria-expanded="false">
+      <img src="/static/openfabro-mascot.png" alt="OpenFabro"><span class="brand-wordmark">OpenFabro</span><span data-icon="chevronDown"></span>
+    </button>
+    <button class="owner-button" id="projectsButton" title="Your projects">personal</button>
+    <span class="breadcrumb-separator" data-icon="chevronRight"></span>
+    <button class="project-name" id="projectTitle" title="Rename project">USB-C Power Module</button>
+    <div class="project-header-search" id="projectHeaderSearch" hidden><span data-icon="search"></span><input id="globalProjectSearch" type="search" placeholder="Search…" aria-label="Search projects"></div>
+    <span class="save-indicator" id="saveIndicator" title="Reference project — edit or save to make it yours"><span data-icon="cloud"></span><span id="saveLabel">Reference</span></span>
+    <div class="project-actions">
+      <button class="icon-button mobile-chat" id="mobileChat" title="Toggle chat" aria-label="Toggle chat"><span data-icon="chat"></span></button>
+      <button class="icon-button" id="commandButton" title="Commands (⌘K)" aria-label="Open command menu"><span data-icon="command"></span></button>
+      <button class="price-button" id="priceButton" title="Manufacturing estimate">Estimate cost</button>
+      <button class="export-button" id="exportButton"><span data-icon="download"></span><span>Export</span></button>
+      <div class="live-avatars" id="liveAvatars" aria-label="Other people in this project" hidden></div>
+      <button class="icon-button" id="commentsButton" title="Project comments" aria-label="Project comments"><span data-icon="chat"></span><span id="commentCount" hidden></span></button>
+      <button class="share-button" id="shareButton"><span data-icon="lock"></span>Share</button>
+      <button class="avatar" id="settingsButton" title="Settings" aria-label="Open settings">P</button>
+    </div>
+  </header>
+
+  <div class="ide-shell" id="ideShell">
+    <aside class="chat-panel" id="chatPanel" aria-label="AI conversation">
+      <div class="pane-title"><span class="chat-title">Chat</span>
+        <button class="run-stop" id="stopRunButton" title="Stop the active run" hidden>Stop</button>
+        <button class="icon-button pane-history" id="historyButton" title="Conversation history" aria-label="Conversation history"><span data-icon="history"></span></button>
+        <button class="icon-button" id="collapseChat" title="Minimize chat" aria-label="Minimize chat"><span data-icon="minimize"></span></button>
+      </div>
+      <div class="chat-content" id="chatContent">
+        <div class="welcome" id="welcome">
+          <div class="welcome-brand">
+            <img class="welcome-mascot" src="/static/openfabro-mascot.png" width="104" height="104" alt="Fabro, your friendly AI hardware engineer">
+            <h1>What will you build?</h1>
+            <p>Your open-source AI hardware engineer.<br>Circuits, enclosures and complete devices.</p>
+          </div>
+          <div class="suggestions">
+            <button class="suggestions-heading" id="suggestionsToggle" aria-expanded="true">Prompt suggestions<span data-icon="chevronDown"></span></button>
+            <div class="suggestion-list" id="suggestionList">
+              <button data-prompt="Help me plan a complete USB-C sensor device: its circuit, enclosure, mounting, connector openings and starter firmware.">Plan a complete device</button>
+              <button data-prompt="Review this schematic for electrical issues and missing support components.">Find schematic issues</button>
+              <button data-prompt="Design a 3D-printable enclosure for this board, with access to the USB-C port.">Design an enclosure</button>
+            </div>
+          </div>
+        </div>
+        <div class="conversation" id="conversation" role="log" aria-live="polite" hidden></div>
+      </div>
+      <form class="composer" id="chatForm">
+        <div class="context-chip" id="contextChip" hidden><span data-icon="chip"></span><span id="contextLabel"></span><button class="icon-button" type="button" id="clearContext" aria-label="Remove context">×</button></div>
+        <textarea id="chatInput" aria-label="Message OpenFabro, your AI hardware engineer" placeholder="Describe a device, circuit or enclosure…" rows="3"></textarea>
+        <div class="composer-footer">
+          <div class="agent-mode" role="group" aria-label="Conversation mode">
+            <button type="button" class="active" data-mode="agent" aria-pressed="true"><span data-icon="navigation"></span>Agent</button>
+            <button type="button" data-mode="chat" aria-pressed="false"><span data-icon="chat"></span>Chat</button>
+          </div>
+          <button type="button" class="icon-button attach-button" id="attachButton" aria-label="Attach datasheet" title="Attach a datasheet"><span data-icon="plus"></span></button>
+          <button type="button" class="icon-button markup-button" id="markupButton" aria-label="Markup" title="Draw on the canvas and ask AI" aria-pressed="false"><span data-icon="pen"></span></button>
+          <button type="button" class="icon-button composer-more" id="composerMore" aria-label="More chat tools" title="More"><span data-icon="more"></span></button>
+          <input type="file" id="attachmentInput" accept=".pdf,.txt,.md,.json,.kicad_sch,.kicad_pcb" hidden>
+          <button type="button" class="model-button" id="modelButton" title="Configure AI model"><span class="model-dot"></span><span id="modelLabel">Select model</span><span data-icon="chevronDown"></span></button>
+          <button type="submit" class="send-button" id="sendButton" aria-label="Send message" title="Send message (Enter)"><span data-icon="arrowUp"></span></button>
+        </div>
+        <div class="attachment-label" id="attachmentLabel" hidden></div>
+      </form>
+      <div class="composer-note" id="composerNote">OpenFabro · Your open-source AI hardware engineer.</div>
+    </aside>
+    <div class="splitter" id="splitter" role="separator" tabindex="0" aria-label="Resize chat" aria-orientation="vertical" aria-valuemin="280" aria-valuemax="900" aria-valuenow="480"></div>
+
+    <main class="editor-panel" id="editorPanel">
+      <header class="viewbar">
+        <button class="icon-button restore-chat" id="restoreChat" aria-label="Show chat" title="Show chat"><span data-icon="panelLeft"></span></button>
+        <nav class="view-tabs" id="viewTabs" role="tablist" aria-label="Design views">
+          <button role="tab" data-view="files" aria-selected="false"><span data-icon="file"></span>Files</button>
+          <button role="tab" data-view="schematic" class="active" aria-selected="true"><span data-icon="schematic"></span>Schematic</button>
+          <button role="tab" data-view="layout" aria-selected="false"><span data-icon="board"></span>Layout</button>
+          <button role="tab" data-view="3d" aria-selected="false"><span data-icon="cube"></span>3D View</button>
+          <button class="add-tab" id="addTabButton" aria-label="Add view" title="Add a view"><span data-icon="plus"></span></button>
+        </nav>
+        <button class="icon-button expand-editor" id="expandEditor" title="Expand editor" aria-label="Expand editor"><span data-icon="maximize"></span></button>
+      </header>
+      <div class="viewport" id="viewport">
+        <div class="view-content" id="viewContent" role="tabpanel" aria-label="Schematic" tabindex="-1"></div>
+        <div class="canvas-tools" id="canvasTools" role="toolbar" aria-label="Project tools">
+          <button class="tool-button" data-panel="manufacturing" aria-label="Manufacturing" title="Manufacturing"><span data-icon="factory"></span></button>
+          <button class="tool-button" data-panel="library" aria-label="Part library" title="Part library (A)"><span data-icon="shapes"></span></button>
+          <button class="tool-button" data-panel="objects" aria-label="Objects" title="Objects"><span data-icon="list"></span></button>
+          <button class="tool-button" data-panel="layers" aria-label="Layers" title="View"><span data-icon="layers"></span></button>
+          <button class="tool-button check-tool" data-panel="checks" aria-label="Design checks" title="Design checks"><span data-icon="shield"></span><span id="checkCount">—</span></button>
+        </div>
+        <aside class="drawer" id="drawer" aria-label="Project tools panel" hidden></aside>
+        <aside class="inspector" id="inspector" aria-label="Inspector" hidden></aside>
+        <button class="project-dock" id="projectDock" aria-label="Open inspector">
+          <span class="dock-title"><span data-icon="home"></span>Project<span data-icon="chevronRight"></span></span>
+          <span class="dock-body"><span id="dockProjectName">USB-C Power Module</span><span data-icon="folder"></span></span>
+        </button>
+        <div class="canvas-bottom" id="canvasBottom">
+          <div class="bottom-left">
+            <button class="square-control" id="fitButton" title="Zoom to fit (F)" aria-label="Zoom to fit"><span data-icon="scan"></span></button>
+            <button class="square-control" id="panButton" title="Pan tool (Space)" aria-label="Pan tool" aria-pressed="false"><span data-icon="hand"></span></button>
+            <button class="square-control" id="routeButton" title="Route between pads (W)" aria-label="Route trace" aria-pressed="false" hidden><span data-icon="link"></span></button>
+            <button class="square-control" id="viaButton" title="Place a through via (V)" aria-label="Place via" aria-pressed="false" hidden><span data-icon="via"></span></button>
+            <button class="square-control" id="wireButton" title="Draw wire (W) · F flip elbow · Backspace undo bend" aria-label="Connect pins" aria-pressed="false"><span data-icon="link"></span></button>
+            <button class="square-control" id="cameraOptions" title="Camera options" aria-label="Camera options" hidden><span data-icon="cube"></span></button>
+          </div>
+          <div class="zoom-controls"><button id="zoomOut" aria-label="Zoom out">−</button><button id="zoomReset" title="Reset zoom">100%</button><button id="zoomIn" aria-label="Zoom in">+</button></div>
+          <button class="auto-layout" id="autoLayoutButton" title="Arrange unlocked components"><span data-icon="play"></span>Auto-layout</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <section class="project-browser" id="projectBrowser" aria-label="Project browser" hidden>
+    <div class="projects-layout">
+      <aside class="workspace-profile">
+        <div class="workspace-avatar" id="workspaceAvatar"></div><h1 id="workspaceDisplayName">Personal workspace</h1><p class="profile-handle">personal</p>
+        <button class="profile-edit" id="editWorkspaceProfile">Edit profile</button><div class="profile-rule"></div>
+        <p class="profile-stat" id="projectStats"></p><p class="profile-local"><span data-icon="lock"></span>Local workspace</p>
+        <button class="secondary-button" id="returnToEditor">Return to editor</button>
+      </aside>
+      <div class="project-browser-main">
+        <div class="project-browser-toolbar"><div class="project-browser-tabs"><button class="active" data-project-filter="all">Overview</button><button data-project-filter="starred">Starred</button></div><input id="filterProjectName" type="search" aria-label="Filter projects by name" placeholder="Filter by name…"><select id="projectTypeFilter" aria-label="Project type"><option value="all">All</option><option value="template">Templates</option></select><button class="primary-button" id="browserNewProject"><span data-icon="plus"></span>New project</button></div>
+        <div class="project-browser-list" id="projectBrowserList"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="popover project-actions-menu" id="projectActionsMenu" hidden></div>
+
+  <div class="popover main-menu" id="mainMenu" hidden>
+    <div class="menu-brand">OpenFabro<span>Your open-source AI hardware engineer</span></div>
+    <button data-action="new"><span data-icon="plus"></span>New project<kbd>⌥N</kbd></button>
+    <button data-action="projects"><span data-icon="folder"></span>Your projects</button>
+    <button data-action="save"><span data-icon="save"></span>Save project<kbd>⌘S</kbd></button>
+    <button data-action="import"><span data-icon="upload"></span>Import KiCad project</button>
+    <button data-action="import-cad"><span data-icon="cube"></span>Import 3D part or assembly</button>
+    <div class="menu-divider"></div>
+    <div class="menu-section-label">Your projects</div>
+    <div id="menuProjectList"></div>
+    <div class="menu-divider"></div>
+    <button data-action="settings"><span data-icon="settings"></span>Settings</button>
+    <a href="/classic" target="_blank" rel="noopener"><span data-icon="external"></span>Open classic workspace</a>
+    <button data-action="shortcuts"><span data-icon="keyboard"></span>Keyboard shortcuts<kbd>⌘/</kbd></button>
+    <button data-action="component-updates"><span data-icon="history"></span>Component updates</button>
+    <div class="menu-foot">Local workspace · OpenFabro 0.1.0</div>
+  </div>
+  <div class="popover add-view-menu" id="addViewMenu" hidden>
+    <div class="menu-section-label">Add a view</div>
+    <button data-add-view="components"><span data-icon="chip"></span>Components</button>
+    <button data-add-view="bom"><span data-icon="table"></span>Bill of materials</button>
+    <button data-add-view="nets"><span data-icon="schematic"></span>Nets</button>
+    <button data-add-view="pins"><span data-icon="chip"></span>Pins</button>
+    <button data-add-view="symbol"><span data-icon="chip"></span>Symbol</button>
+    <button data-add-view="buses"><span data-icon="link"></span>Buses &amp; timing</button>
+    <button data-add-view="library"><span data-icon="shapes"></span>Library editor</button>
+    <button data-add-view="rules"><span data-icon="layers"></span>Rules & stackup</button>
+    <button data-add-view="knowledge"><span data-icon="file"></span>Knowledge</button>
+    <button data-add-view="blocks"><span data-icon="workflow"></span>Block diagram</button>
+    <button data-add-view="review"><span data-icon="shield"></span>Review</button>
+    <button data-add-view="simulation"><span data-icon="workflow"></span>Simulation</button>
+    <button data-add-view="3d"><span data-icon="box"></span>Enclosure</button>
+  </div>
+
+  <dialog id="newProjectDialog" class="modal new-project-modal">
+    <div class="modal-heading"><h2>Create a project</h2><button class="icon-button" data-close aria-label="Close">×</button></div>
+    <p class="modal-description">Give your next hardware idea a place to take shape.</p>
+    <form id="newProjectForm">
+      <label>Project name<input name="title" placeholder="e.g. Wireless sensor node" required maxlength="80" autocomplete="off"></label>
+      <label>Description<textarea name="prompt" placeholder="What are you building?" rows="3"></textarea></label>
+      <span class="field-label">Start from</span>
+      <div class="template-picker">
+        <label class="template-option"><input type="radio" name="template" value="blank" checked><span class="template-preview blank-preview"><span data-icon="plus"></span></span><strong>Blank project</strong><span>Your idea, from scratch</span></label>
+        <label class="template-option"><input type="radio" name="template" value="power"><span class="template-preview circuit-preview"><span data-icon="board"></span></span><strong>USB-C power module</strong><span>Editable reference circuit</span></label>
+      </div>
+      <div class="modal-footer"><button type="button" class="secondary-button" data-close>Cancel</button><button type="submit" class="primary-button">Create project</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="settingsDialog" class="modal settings-modal">
+    <div class="modal-heading"><h2>Settings</h2><button class="icon-button" data-close aria-label="Close settings">×</button></div>
+    <div class="settings-body">
+      <nav class="settings-nav" aria-label="Settings sections">
+        <button class="active" data-settings="ai"><span data-icon="sparkles"></span>AI models</button>
+        <button data-settings="tools"><span data-icon="wrench"></span>Engineering tools</button>
+        <button data-settings="manufacturing"><span data-icon="factory"></span>Manufacturing</button>
+        <button data-settings="about"><span data-icon="info"></span>About</button>
+        <button id="workspaceAccountsButton"><span data-icon="lock"></span>Workspace accounts</button>
+      </nav>
+      <form id="settingsForm" class="settings-form">
+        <section data-settings-pane="ai">
+          <h3>Your AI hardware engineer</h3><p class="muted">Connect a model to work on this project's actual design.</p>
+          <label>Provider<select name="ai.provider"><option value="codex">Codex · local sign-in</option><option value="anthropic">Anthropic Claude</option><option value="openai">OpenAI-compatible / local model</option></select></label>
+          <div data-provider="codex" hidden><div class="codex-connection" id="codexConnection">Checking local Codex…</div><label>Model<input name="ai.codex_model" placeholder="Use your Codex default"></label><p class="muted">Uses the Codex CLI signed in on this computer. Project edits and review results appear in this workspace.</p></div>
+          <div data-provider="anthropic"><label>API key<input type="password" name="ai.anthropic_api_key" autocomplete="off" placeholder="Your Anthropic API key"></label><label>Model<input name="ai.anthropic_model" placeholder="Claude model ID"></label></div>
+          <div data-provider="openai" hidden><label>Server URL<input name="ai.openai_base_url" placeholder="http://localhost:11434/v1"></label><label>API key<input type="password" name="ai.openai_api_key" autocomplete="off" placeholder="Optional for local models"></label><label>Model<input name="ai.openai_model" placeholder="Model ID"></label></div>
+          <div class="connection-row"><button class="secondary-button" id="testConnection" type="button">Save & test connection</button><span class="muted" id="connectionResult" role="status"></span></div>
+          <p class="settings-note"><span data-icon="lock"></span>Credentials stay in this local OpenFabro installation.</p>
+        </section>
+        <section data-settings-pane="tools" hidden><h3>Engineering tools</h3><p class="muted">Used for real builds, simulation, and manufacturing files.</p><div id="toolStatus" class="tool-status"></div><label>KiCad CLI path<input name="tools.kicad_cli" placeholder="Auto-detect"></label><label>TraceMaker path<input name="tools.tracemaker" placeholder="Auto-detect"></label><label>FreeCAD path<input name="tools.freecad" placeholder="Auto-detect"></label><label>ngspice path<input name="tools.ngspice" placeholder="Auto-detect"></label><a class="text-link" href="https://dingooz.github.io/WholeBoard/how-to/install/" target="_blank" rel="noopener">Engineering tool installation (upstream)<span data-icon="external"></span></a></section>
+        <section data-settings-pane="manufacturing" hidden><h3>Manufacturing defaults</h3><p class="muted">Passed to OpenFabro's quoting and fabrication pipeline.</p><label>PCB quantity<input type="number" name="jlcpcb.quantity" min="1"></label><label>Assembly quantity<input type="number" name="jlcpcb.assembly_quantity" min="1"></label><label>Solder mask<select name="jlcpcb.solder_mask"><option>Green</option><option>Black</option><option>Blue</option><option>Red</option><option>White</option></select></label><label>Shipping country<input name="jlcpcb.shipping_country" maxlength="2" placeholder="US"></label></section>
+        <section data-settings-pane="about" hidden><img class="about-icon" src="/static/openfabro-mascot.png" alt="Fabro, the OpenFabro mascot"><h3>OpenFabro</h3><p class="muted">The open-source AI hardware engineer.</p><p>Design circuits, enclosures and complete devices together. Inspect editable electrical and mechanical outputs, starter firmware, engineering checks and manufacturing estimates in one local workspace.</p><a class="text-link" href="https://github.com/DingoOz/WholeBoard" target="_blank" rel="noopener">Upstream engineering source<span data-icon="external"></span></a><p class="muted">GPL-3.0-or-later · Local workspace</p></section>
+        <div class="modal-footer"><span id="settingsResult" class="muted" role="status"></span><button class="primary-button" type="submit">Save settings</button></div>
+      </form>
+    </div>
+  </dialog>
+
+  <dialog id="exportDialog" class="modal export-modal"><div class="modal-heading"><h2>Export project</h2><button class="icon-button" data-close aria-label="Close export">×</button></div><p class="modal-description">Take your design into the next step.</p><div id="exportOptions"></div></dialog>
+  <dialog id="shareDialog" class="modal share-modal"><div class="modal-heading"><h2>Share project</h2><button class="icon-button" data-close aria-label="Close share">×</button></div>
+    <p class="modal-description" id="projectAccessDescription"></p>
+    <section id="projectAccessManagement">
+      <h3>People with access</h3><div id="projectMembers"></div>
+      <form id="addMemberForm" class="access-inline-form"><select id="memberAccount" aria-label="Workspace account" required></select><select id="memberRole" aria-label="Member permission"><option value="editor">Editor</option><option value="commenter">Commenter</option><option value="viewer">Viewer</option></select><button class="secondary-button" type="submit">Add</button></form>
+      <p class="small muted" id="noWorkspaceAccounts" hidden>Create accounts in Settings → Workspace accounts.</p>
+      <h3>Access links</h3><div id="projectShares"></div>
+      <form id="createShareForm"><div class="access-inline-form"><input id="shareLabel" aria-label="Access link name" placeholder="Design review" maxlength="80"><select id="shareRole" aria-label="Link permission"><option value="viewer">Viewer</option><option value="commenter">Commenter</option><option value="editor">Editor</option></select><select id="shareDays" aria-label="Link expiry"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option></select></div><button class="secondary-button" type="submit">Create access link</button></form>
+      <label>New access link<div class="copy-field"><input id="shareUrl" aria-label="New access link" readonly placeholder="Create a link above"><button class="primary-button" id="copyLink" disabled>Copy link</button></div></label>
+    </section><p class="muted small" id="shareAddressNote">Other devices need a reachable workspace address. Links grant access only to this project.</p>
+  </dialog>
+  <dialog id="workspaceDialog" class="modal workspace-modal"><div class="modal-heading"><h2>Workspace accounts</h2><button class="icon-button" data-close aria-label="Close workspace accounts">×</button></div><div class="workspace-identity"><span id="signedInUser"></span><button class="secondary-button" id="workspaceSignOut">Sign out</button><button class="secondary-button" id="workspaceSignIn">Use another account</button></div><div id="accountManagement"><p class="modal-description">Create local accounts, then assign project permissions in Share.</p><div id="workspaceAccounts"></div><form id="createAccountForm" class="account-create-form"><label>Username<input id="accountUsername" required minlength="2" maxlength="40" autocomplete="off"></label><label>Display name<input id="accountDisplayName" required maxlength="80" autocomplete="off"></label><label>Password<input id="accountPassword" type="password" required minlength="10" maxlength="256" autocomplete="new-password"></label><button class="primary-button" type="submit">Create account</button></form></div></dialog>
+  <dialog id="workspaceLoginDialog" class="modal workspace-login"><div class="modal-heading"><h2>Sign in to OpenFabro</h2></div><p class="modal-description">Use the account created by this workspace's administrator.</p><form id="workspaceLoginForm"><label>Username<input id="loginUsername" required autocomplete="username"></label><label>Password<input id="loginPassword" type="password" required autocomplete="current-password"></label><p id="workspaceLoginError" class="form-error" role="status"></p><button class="primary-button" type="submit">Sign in</button></form></dialog>
+  <dialog id="commandDialog" class="modal command-modal"><div class="command-search"><span data-icon="search"></span><input id="commandInput" placeholder="Search commands…" aria-label="Search commands"><kbd>esc</kbd></div><div id="commandList" class="command-list"></div></dialog>
+  <dialog id="shortcutsDialog" class="modal shortcuts-dialog" aria-labelledby="shortcutTitle">
+    <div class="modal-heading"><h2 id="shortcutTitle">Keyboard shortcuts</h2><button class="icon-button" data-close-shortcuts aria-label="Close keyboard shortcuts">×</button></div>
+    <div class="shortcut-toolbar"><div class="shortcut-search"><span data-icon="search"></span><input id="shortcutSearch" type="search" placeholder="Search shortcuts…" aria-label="Search shortcuts"></div><select id="shortcutScope" aria-label="Shortcut context"><option value="all">All editors</option><option>Schematic</option><option>PCB</option></select><select id="shortcutPlatform" aria-label="Shortcut platform"><option value="mac">macOS</option><option value="windows">Windows / Linux</option></select></div>
+    <div id="shortcutList" class="shortcut-list"></div><p class="shortcut-footer">Press <kbd>Esc</kbd> to close. Some shortcuts depend on the active editor.</p>
+  </dialog>
+  <dialog id="textDialog" class="modal text-modal"><form id="textForm"><div class="modal-heading"><h2 id="textTitle">Rename project</h2><button class="icon-button" type="button" data-close aria-label="Close">×</button></div><label id="textLabel">Project name<input id="textInput" required autocomplete="off"></label><div class="modal-footer"><button type="button" class="secondary-button" data-close>Cancel</button><button type="submit" class="primary-button">Save</button></div></form></dialog>
+  <dialog id="historyDialog" class="modal history-modal"><div class="modal-heading"><h2>Project activity</h2><button class="icon-button" data-close aria-label="Close history">×</button></div><div id="historyContent"></div></dialog>
+  <dialog id="netDialog" class="modal text-modal"><form id="netForm"><div class="modal-heading"><h2 id="netDialogTitle">Connect pins</h2><button class="icon-button" type="button" data-close aria-label="Close net editor">×</button></div><label>Net name<input id="netName" required placeholder="e.g. I2C_SDA"></label><label>Net class<select id="netClass"><option value="signal">Signal</option><option value="power">Power</option></select></label><label>Pins<textarea id="netPins" rows="4" placeholder="R1.1, U1.3" required></textarea></label><p class="muted small">Separate pins with commas or new lines. Pin names follow the component's footprint.</p><p id="netError" class="small" style="color:var(--danger)" role="alert"></p><div class="modal-footer"><button type="button" class="secondary-button" data-close>Cancel</button><button type="submit" class="primary-button">Save net</button></div></form></dialog>
+  <dialog id="partDialog" class="modal new-project-modal"><form id="partForm"><div class="modal-heading"><h2>Add component</h2><button type="button" class="icon-button" data-close aria-label="Close component picker">×</button></div><p class="modal-description" id="partDescription"></p><label>Value / part number<input id="partValue" required></label><label>Reference prefix<select id="partPrefix"><option>U</option><option>R</option><option>C</option><option>J</option><option>D</option><option>L</option><option>Q</option><option>SW</option><option>Y</option></select></label><label>KiCad footprint<input id="partFootprint" required list="footprintChoices" placeholder="Search installed footprints, e.g. R_0603" autocomplete="off"><datalist id="footprintChoices"></datalist></label><label>KiCad symbol (optional)<input id="partSymbol" placeholder="Library:Symbol"></label><p class="small muted">Check the manufacturer's pinout and package against the selected footprint.</p><div class="modal-footer"><button type="button" class="secondary-button" data-close>Cancel</button><button type="submit" class="primary-button">Add component</button></div></form></dialog>
+  <dialog id="mergeNetDialog" class="modal text-modal"><div class="modal-heading"><h2>Merge different nets?</h2><button class="icon-button" data-close aria-label="Cancel net merge">×</button></div><p id="mergeNetDescription" class="modal-description"></p><p class="small muted">Copper on the affected nets will need routing and a new design rule check.</p><div class="modal-footer"><button class="secondary-button" data-close>Cancel</button><button class="primary-button" id="confirmNetMerge">Merge nets</button></div></dialog>
+  <dialog id="wireDisconnectDialog" class="modal text-modal"><div class="modal-heading"><h2>Wire connection</h2><button class="icon-button" data-close aria-label="Cancel wire action">×</button></div><p class="modal-description" id="wireDisconnectDescription"></p><div class="wire-disconnect-actions"><button class="secondary-button" id="disconnectWireFrom"></button><button class="secondary-button" id="disconnectWireTo"></button><button class="secondary-button" id="removeWireDrawingDialog">Remove drawing</button></div><div class="modal-footer"><button class="secondary-button" data-close>Cancel</button></div></dialog>
+  <dialog id="viaDialog" class="modal text-modal"><div class="modal-heading"><h2>Place a through via</h2><button class="icon-button" data-close aria-label="Cancel via placement">×</button></div><form id="viaForm"><p class="modal-description">Choose a net, then click the via's position in Layout.</p><label>Net<select id="viaNet" required></select></label><label>Diameter (mm)<input id="viaDiameter" type="number" min="0.1" max="10" step="0.05" value="0.6" required></label><label>Drill (mm)<input id="viaDrill" type="number" min="0.1" max="5" step="0.05" value="0.3" required></label><button class="primary-button" type="submit">Choose position</button></form></dialog>
+  <input type="file" id="importInput" accept=".kicad_sch,.kicad_pcb,.kicad_pro,.zip,.json" multiple hidden>
+  <div class="popover composer-menu" id="composerMoreMenu" hidden><button type="button" data-composer-action="attach"><span data-icon="plus"></span><span>Attach datasheet</span></button><button type="button" data-composer-action="markup"><span data-icon="pen"></span><span>Markup</span></button></div>
+  <div class="toast-stack" id="toastStack" role="status" aria-live="polite"></div>
+</body>
+</html>

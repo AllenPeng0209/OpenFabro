@@ -2,9 +2,9 @@
 
 On Windows, use `.venv\Scripts\python` in place of `.venv/bin/python`.
 
-## `wholeboard`
+## `openfabro`
 
-Starts the server and opens the browser. Also `./run.sh`, `run.bat` or `.venv/bin/python -m wholeboard`.
+Starts the server and opens the browser. Also `./run.sh`, `run.bat` or `.venv/bin/python -m openfabro`.
 
 | Option | |
 |---|---|
@@ -14,20 +14,20 @@ Starts the server and opens the browser. Also `./run.sh`, `run.bat` or `.venv/bi
 | `--set-password` | Ask for a password that other computers on the network must enter |
 | `--clear-password` | Remove the network password |
 
-## `python -m wholeboard.doctor`
+## `python -m openfabro.doctor`
 
-Lists the tools WholeBoard uses, where they were found and their versions.
+Lists the tools OpenFabro uses, where they were found and their versions.
 
 | Option | |
 |---|---|
 | `--install [WHAT ...]` | Install missing tools: `tracemaker`, `freecad`, `ngspice`, `libs`, `platformio`, `kikit`. With no names: all but `platformio` and `kikit` |
 | `--force` | Reinstall even if found |
 
-## `python -m wholeboard.mcp`
+## `python -m openfabro.mcp`
 
 The MCP server, over stdio. No options. See [MCP tools](mcp-tools.md).
 
-## `python -m wholeboard.bench`
+## `python -m openfabro.bench`
 
 The benchmark. See [Run the benchmark](../how-to/benchmark.md).
 
@@ -46,4 +46,8 @@ The benchmark. See [Run the benchmark](../how-to/benchmark.md).
 | Variable | |
 |---|---|
 | `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `XAI_API_KEY` | Used when no key is set in *Settings* |
-| `WHOLEBOARD_HOME` | Where settings and caches live (default `~/.wholeboard`) |
+| `OPENFABRO_HOME` | Where settings and caches live (fresh-install default `~/.openfabro`) |
+| `OPENFABRO_URL` | Server URL used by the MCP tools (otherwise the configured local port) |
+| `WHOLEBOARD_HOME`, `WHOLEBOARD_URL` | Legacy aliases; the corresponding `OPENFABRO_*` value takes precedence |
+
+The older `wholeboard` command and `python -m wholeboard.*` entry points remain supported.

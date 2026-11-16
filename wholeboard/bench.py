@@ -1,9 +1,9 @@
 """The benchmark: reference prompts run end to end, to see whether a change to a model, a prompt or a block helps.
 
-    python -m wholeboard.bench                         # every prompt in bench/prompts.json, with the AI in Settings
-    python -m wholeboard.bench --only blink555,can_node
-    python -m wholeboard.bench --worker openai:qwen3-coder --base-url http://localhost:8080/v1 --expert claude-opus-5-5
-    python -m wholeboard.bench --table                 # only rewrite bench/RESULTS.md from bench/results/
+    python -m openfabro.bench                         # every prompt in bench/prompts.json, with the AI in Settings
+    python -m openfabro.bench --only blink555,can_node
+    python -m openfabro.bench --worker openai:qwen3-coder --base-url http://localhost:8080/v1 --expert claude-opus-5-5
+    python -m openfabro.bench --table                 # only rewrite bench/RESULTS.md from bench/results/
 
 Each prompt runs unattended (the designer is told not to ask questions, and any question it asks anyway gets
 "use your judgement"). For each run it records: completed or not, AI rebuilds, ERC errors, DRC errors, unrouted
@@ -139,7 +139,7 @@ def table() -> str:
         except (OSError, ValueError):
             continue
     lines = ["# Benchmark results", "",
-             "Written by `python -m wholeboard.bench`; see [bench/README.md](README.md). Each row is one run of the "
+             "Written by `python -m openfabro.bench`; see [bench/README.md](README.md). Each row is one run of the "
              "reference prompts. ERC, DRC and unrouted count what was left on the last clean (or last) build; "
              "simulation failures count builds stopped by the simulation.", ""]
     if not runs:
@@ -168,7 +168,7 @@ def table() -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(prog="python -m wholeboard.bench", description=__doc__.split("\n")[0])
+    ap = argparse.ArgumentParser(prog="python -m openfabro.bench", description=__doc__.split("\n")[0])
     ap.add_argument("--only", help="comma-separated prompt ids")
     ap.add_argument("--worker", help="provider:model for the worker, e.g. anthropic:claude-sonnet-5-5 or openai:qwen3")
     ap.add_argument("--base-url", help="the OpenAI-compatible server for an openai worker")

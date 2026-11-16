@@ -1,7 +1,7 @@
 """Read a board outline from a DXF drawing: the largest closed shape is the board, circles are holes.
 
 Handles LINE, ARC, CIRCLE, LWPOLYLINE (with bulges) and POLYLINE/VERTEX, in millimetres or inches
-($INSUNITS). Coordinates come back in WholeBoard's convention: mm from the board's top-left, y down.
+($INSUNITS). Coordinates come back in OpenFabro's convention: mm from the board's top-left, y down.
 """
 
 from __future__ import annotations

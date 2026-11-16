@@ -7,7 +7,7 @@ and the parameters a user can change with sliders. `whatif` re-simulates the des
 The thermal map itself is solved in the browser (web/simlab.js) from the heat each part gives off, so the
 airflow and copper sliders respond instantly.
 
-With an enclosure (the printed one, the user's stock case, or the box WholeBoard would suggest), the board can
+With an enclosure (the printed one, the user's stock case, or the box OpenFabro would suggest), the board can
 be put in it: boxheat works out the air temperature inside, the circuit is re-simulated in that air, and the
 heat map uses the weaker cooling inside a box.
 """

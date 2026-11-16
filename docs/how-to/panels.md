@@ -6,7 +6,7 @@ panel for you from single-board files, or you can draw it yourself with KiKit an
 ## Install KiKit
 
 ```
-.venv/bin/python -m wholeboard.doctor --install kikit
+.venv/bin/python -m openfabro.doctor --install kikit
 ```
 
 KiKit runs on KiCad's own Python.
@@ -30,7 +30,7 @@ are kept.
 ## Fiducials on a single board
 
 Parts at 0.5 mm pitch or finer need fiducials for the assembly machine. Without a panel, set
-`"board": {"fiducials": true}` to put three in the corners. WholeBoard warns when a board needs them and has none.
+`"board": {"fiducials": true}` to put three in the corners. OpenFabro warns when a board needs them and has none.
 
 ## Parts on both sides
 

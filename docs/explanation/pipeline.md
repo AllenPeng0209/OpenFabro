@@ -1,6 +1,6 @@
 # How a build works
 
-WholeBoard has two halves. The **designer** is an AI with tools: it talks to you, searches parts and footprints,
+OpenFabro has two halves. The **designer** is an AI with tools: it talks to you, searches parts and footprints,
 and writes the design, a JSON document ([Design spec](../reference/spec.md)). The **pipeline** is ordinary code:
 it turns a design into a KiCad project, routes it, checks it and prices it. The designer never edits KiCad files;
 it only ever submits a complete design, and the pipeline builds it from scratch (keeping

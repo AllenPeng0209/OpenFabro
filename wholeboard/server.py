@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import os
 import platform
@@ -16,17 +17,37 @@ from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconn
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from . import __version__, auth, config, design, enclosure, mcp, ngspice, pipeline, publish, revisions, router
+from . import __version__, auth, collaboration, config, design, enclosure, mcp, ngspice, pipeline, publish, revisions, router
 from .ai import agent as agent_mod
 from .ai.providers import AIError, make_session
 from .kicad import cli, libs
 from .project import SHORT, STEPS, Manager
 
 WEB = Path(__file__).with_name("web")
-app = FastAPI(title="WholeBoard", version=__version__)
-app.mount("/static", StaticFiles(directory=WEB), name="static")
+
+
+class RevalidatingStaticFiles(StaticFiles):
+    def file_response(self, full_path, stat_result, scope, status_code=200):
+        response = super().file_response(full_path, stat_result, scope, status_code)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
+
+
+def asset_revision() -> str:
+    digest = hashlib.sha256()
+    for f in sorted(WEB.rglob("*")):
+        if f.is_file() and f.suffix in {".mjs", ".js", ".css", ".svg", ".html"}:
+            stat = f.stat()
+            digest.update(f"{f.relative_to(WEB)}:{stat.st_size}:{stat.st_mtime_ns}".encode())
+    return digest.hexdigest()[:12]
+
+
+app = FastAPI(title="OpenFabro", description="The open-source AI hardware engineer for circuits, enclosures and complete devices.", version=__version__)
+app.mount("/static", RevalidatingStaticFiles(directory=WEB), name="static")
+app.mount("/assets/{revision}", RevalidatingStaticFiles(directory=WEB), name="versioned-assets")
 app.add_middleware(auth.AuthMiddleware)
 manager: Manager | None = None
+_manager_lock = threading.Lock()
 _agents: dict[str, agent_mod.Agent] = {}
 _status_cache: dict = {}
 
@@ -34,7 +55,8 @@ _status_cache: dict = {}
 def mgr() -> Manager:
     global manager
     if manager is None:
-        manager = Manager()
+        with _manager_lock:
+            if manager is None:manager = Manager()
     return manager
 
 
@@ -56,6 +78,13 @@ def _agent(p, request: Request | None = None) -> agent_mod.Agent:
 
 @app.get("/")
 def index():
+    html = (WEB / "workbench.html").read_text(encoding="utf-8").replace("/static/", f"/assets/{asset_revision()}/")
+    return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
+
+
+@app.get("/classic")
+def classic():
+    """The original OpenFabro UI remains available for its advanced build tools."""
     return FileResponse(WEB / "index.html")
 
 
@@ -92,9 +121,9 @@ def logout():
 
 @app.post("/api/auth/password")
 async def set_lan_password(request: Request):
-    """Set or clear the network password. Only from the computer running WholeBoard."""
+    """Set or clear the network password. Only from the computer running OpenFabro."""
     if not auth.is_local(request.scope):
-        raise HTTPException(403, "the password can only be changed on the computer running WholeBoard")
+        raise HTTPException(403, "the password can only be changed on the computer running OpenFabro")
     password = str((await request.json()).get("password") or "")
     if password and len(password) < 6:
         raise HTTPException(400, "use at least 6 characters")
@@ -118,7 +147,11 @@ def status(request: Request, refresh: bool = False):
         _status_cache.update({"ngspice": ngspice.label(ng) if ng else None,
                               "ngspice_version": ngspice.version(ng) if ng else None})
     ai = cfg["ai"]
-    if ai["provider"] == "openai":
+    if ai["provider"] == "codex":
+        from . import codex_bridge
+        cs = codex_bridge.status()
+        ai_label, ai_ready = cs["model"], cs["ready"]
+    elif ai["provider"] == "openai":
         ai_label, ai_ready = f"{ai['openai_model']} @ {ai['openai_base_url']}", bool(ai["openai_base_url"])
     else:
         ai_label = ai["anthropic_model"]
@@ -131,8 +164,13 @@ def status(request: Request, refresh: bool = False):
 
 
 @app.get("/api/config")
-def get_config():
-    return config.public(config.load())
+def get_config(request: Request):
+    cfg = config.public(config.load())
+    if not collaboration.identity(request.scope)["admin"]:
+        for section, key in config.SECRETS:
+            if section in cfg:
+                cfg[section][key] = ""
+    return cfg
 
 
 @app.post("/api/config")
@@ -152,6 +190,11 @@ async def set_config(request: Request):
 @app.post("/api/ai/test")
 def ai_test():
     cfg = config.load()
+    if cfg["ai"]["provider"] == "codex":
+        from . import codex_bridge
+        state = codex_bridge.status(refresh=True)
+        return {"ok": state["ready"], "model": state["model"], "reply": "Local Codex sign-in detected",
+                "error": "" if state["ready"] else "Sign in with codex login on this computer."}
     try:
         s = make_session(cfg["ai"], "Reply with the single word OK.", [])
         s.add_user("Say OK.")
@@ -237,8 +280,9 @@ async def fetch_libs(request: Request):
 
 
 @app.get("/api/projects")
-def list_projects():
-    return mgr().list()
+def list_projects(request: Request):
+    actor = collaboration.identity(request.scope)
+    return [{**s, "access": collaboration.access(actor, mgr().get(s["id"]))} for s in mgr().list() if collaboration.project_role(actor, mgr().get(s["id"]))]
 
 
 @app.post("/api/projects/clear")
@@ -255,23 +299,31 @@ async def create_project(request: Request):
     if not prompt:
         raise HTTPException(400, "describe the board first")
     p = mgr().create(prompt)
+    p.state["owner_id"] = collaboration.identity(request.scope)["id"]
+    p.save()
     if body.get("driver") == "claude-code":
         _agent(p, request).adopt(prompt)
+    elif config.load().get("ai", {}).get("provider") == "codex":
+        from . import codex_bridge
+        try:
+            codex_bridge.start(p, prompt)
+        except ValueError as e:
+            p.set_status("error", str(e))
     else:
         _agent(p, request).start(prompt)
     return {**p.summary(), "url": f"{str(request.base_url).rstrip('/')}/#{p.id}", "lan_urls": _lan_urls(request, p.id)}
 
 
 def _lan_urls(request: Request, pid: str) -> list[str]:
-    """The board's link from other machines, when WholeBoard listens on the LAN (a 127.0.0.1 link works only here)."""
-    if os.environ.get("WHOLEBOARD_HOST") not in ("0.0.0.0", "::"):
+    """The board's link from other machines, when OpenFabro listens on the LAN (a 127.0.0.1 link works only here)."""
+    if (os.environ.get("OPENFABRO_HOST") or os.environ.get("WHOLEBOARD_HOST")) not in ("0.0.0.0", "::"):
         return []
     return [f"http://{ip}:{request.url.port or 80}/#{pid}" for ip in auth.lan_addresses()]
 
 
 @app.post("/api/projects/{pid}/tool")
 async def outside_tool(pid: str, request: Request):
-    """One designer tool call from Claude Code (through `python -m wholeboard.mcp`), run here so the page follows it."""
+    """One designer tool call from Claude Code (through `python -m openfabro.mcp`), run here so the page follows it."""
     p = _project(pid)
     body = await request.json()
     try:
@@ -286,7 +338,7 @@ async def outside_tool(pid: str, request: Request):
 
 @app.get("/api/claude-code")
 def claude_code(request: Request):
-    """What the "Design with Claude Code" screen shows: the line that adds WholeBoard, and how far along it is."""
+    """What the "Design with Claude Code" screen shows: the line that adds OpenFabro, and how far along it is."""
     seen = [p.state.get("driver_seen") or 0 for p in mgr().projects.values() if p.state.get("driver") == "claude-code"]
     return {"claude": shutil.which("claude"), "added": mcp.added(),
             "command": mcp.shell_line(mcp.add_command(request.url.port)),
@@ -298,7 +350,7 @@ def claude_code(request: Request):
 def claude_code_add(request: Request):
     """Run `claude mcp add` for the user. Only from this computer: it changes this computer's Claude Code."""
     if not auth.is_local(request.scope):
-        raise HTTPException(403, "only the computer running WholeBoard can add it to its Claude Code")
+        raise HTTPException(403, "only the computer running OpenFabro can add it to its Claude Code")
     exe = shutil.which("claude")
     if not exe:
         raise HTTPException(404, "Claude Code (the claude command) is not installed on this computer")
@@ -363,6 +415,7 @@ async def import_project(request: Request):
         raise HTTPException(400, "choose a .kicad_sch, .kicad_pcb or a zip of the project")
     title = (body.get("title") or "").strip() or Path(files[0][0]).stem
     p = mgr().create(f"Imported KiCad project {title}")
+    p.state["owner_id"] = collaboration.identity(request.scope)["id"]
     p.state["title"] = title
     p.save()
     try:
@@ -437,7 +490,7 @@ def import_prompt(res: dict) -> str:
 @app.get("/api/projects/{pid}")
 def get_project(pid: str, request: Request):
     p = _project(pid)
-    return {"state": p.state, "events": p.events, "title": p.display_title(), "lan_urls": _lan_urls(request, pid)}
+    return {"state": {**p.state, "runtime": p.runtime(), "access": collaboration.access(collaboration.identity(request.scope), p)}, "events": p.events, "title": p.display_title(), "lan_urls": _lan_urls(request, pid)}
 
 
 @app.patch("/api/projects/{pid}")
@@ -457,7 +510,7 @@ async def rename_project(pid: str, request: Request):
 @app.delete("/api/projects/{pid}")
 def delete_project(pid: str):
     p = _project(pid)
-    if p.worker and p.worker.is_alive():
+    if (p.worker and p.worker.is_alive()) or getattr(p, "engine_busy", False):
         raise HTTPException(409, "stop the project first")
     import shutil
     shutil.rmtree(p.root, ignore_errors=True)
@@ -468,19 +521,40 @@ def delete_project(pid: str):
 @app.post("/api/projects/{pid}/message")
 async def message(pid: str, request: Request):
     p = _project(pid)
-    text = ((await request.json()).get("text") or "").strip()
+    body=await request.json();text = (body.get("text") or "").strip()
     if not text:
         raise HTTPException(400, "empty message")
-    _agent(p, request).start(text)
-    return {"ok": True}
+    from . import canvas_references
+    def submit(mark_started=lambda:None):
+        reference=canvas_references.validate_for_send(p,body.get('canvas_ref'));kwargs={'canvas_reference':reference} if reference else {}
+        if 'mode' in body:kwargs['mode']=body['mode']
+        mark_started()
+        if p.state.get('driver')!='claude-code' and config.load().get('ai',{}).get('provider')=='codex':
+            from . import codex_bridge
+            codex_bridge.start(p,text,**kwargs,**({'request_id':body['request_id']} if body.get('request_id') else {}))
+        else:_agent(p,request).start(text,**kwargs)
+        return {'ok':True}
+    try:
+        return canvas_references.submit_once(p,body.get('request_id'),{'endpoint':'message',**body},submit)
+    except ValueError as e:raise HTTPException(409,str(e)) from None
 
 
 @app.post("/api/projects/{pid}/answer")
 async def answer(pid: str, request: Request):
     p = _project(pid)
     body = await request.json()
-    agent_mod.answer(p, body["id"], str(body.get("text", "")))
-    return {"ok": True}
+    from . import canvas_references
+    def submit(mark_started=lambda:None):
+        reference=canvas_references.validate_for_send(p,body.get('canvas_ref'))
+        if reference:
+            answered={event.get('id') for event in p.events if event.get('type')=='answer'}
+            if p.state.get('status')!='waiting' or not any(event.get('type')=='question' and event.get('id')==body['id'] and event.get('id') not in answered for event in p.events):
+                raise ValueError('That question is no longer waiting for an answer. Send a new message instead.')
+        mark_started()
+        agent_mod.answer(p, body["id"], str(body.get("text", "")),**({'canvas_reference':reference} if reference else {}))
+        return {'ok':True}
+    try:return canvas_references.submit_once(p,body.get('request_id'),{'endpoint':'answer',**body},submit)
+    except ValueError as error:raise HTTPException(409,str(error)) from None
 
 
 @app.post("/api/projects/{pid}/cancel")
@@ -498,8 +572,39 @@ async def requote(pid: str, request: Request):
     if not p.state.get("spec"):
         raise HTTPException(400, "no design yet")
     opts = await request.json()
-    res = await asyncio.to_thread(pipeline.run_quote, p, p.state["spec"], opts)
-    return res
+    if not isinstance(opts, dict):
+        raise HTTPException(422, "Manufacturing options must be an object.")
+    effective = {**config.load()["jlcpcb"], **opts}
+    for key in ("quantity", "assembly_quantity"):
+        try:
+            value = int(effective[key])
+            if isinstance(effective[key], bool) or float(effective[key]) != value or not 1 <= value <= 100_000:
+                raise ValueError()
+        except (ValueError, TypeError, OverflowError):
+            raise HTTPException(422, "Quantities must be whole numbers from 1 to 100,000.") from None
+        opts[key] = value
+    if effective.get("assembly", True) and opts["assembly_quantity"] > opts["quantity"]:
+        raise HTTPException(422, "Assembly quantity cannot exceed PCB quantity.")
+    with p.lock:
+        if p.engine_busy or (p.worker and p.worker.is_alive()) or p.state.get("status") in ("running", "waiting"):
+            raise HTTPException(409, "Wait for the active operation to finish before refreshing prices.")
+        spec = json.loads(json.dumps(p.state["spec"]))
+        p.engine_busy = True
+        p.cancel.clear()
+    p.set_status("running", "Fetching a manufacturing estimate")
+    completed = False
+    try:
+        result = await asyncio.to_thread(pipeline.run_quote, p, spec, opts)
+        if result.get("error"):
+            raise HTTPException(422, result["error"])
+        completed = True
+        return result
+    except pipeline.Cancelled:
+        raise HTTPException(409, "Manufacturing estimate cancelled.") from None
+    finally:
+        p.engine_busy = False
+        status = "stopped" if p.cancel.is_set() else "idle" if completed else "error"
+        p.set_status(status, "Stopped" if p.cancel.is_set() else "Manufacturing estimate finished" if completed else "Manufacturing estimate failed")
 
 
 @app.post("/api/projects/{pid}/panel")
@@ -740,13 +845,24 @@ async def restore_revision(pid: str, rev: int, request: Request):
 
 
 @app.get("/api/projects/{pid}/files/{path:path}")
-def project_file(pid: str, path: str):
+def project_file(pid: str, path: str, request: Request):
     p = _project(pid)
     root = p.root.resolve()
     f = (root / path).resolve()
     if not f.is_relative_to(root) or not f.is_file():
         raise HTTPException(404, "file not found")
-    return FileResponse(f, headers={"Cache-Control": "no-store"})
+    if not collaboration.identity(request.scope)["admin"] and any(s.startswith(".") for s in f.relative_to(root).parts):
+        raise HTTPException(403, "Private project files are not shared.")
+    headers = {"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"}
+    if f.suffix.lower() in (".svg", ".html", ".htm", ".xhtml"):
+        scripts = " allow-scripts allow-downloads" if f.suffix.lower() != ".svg" else ""
+        headers["Content-Security-Policy"] = (
+            f"sandbox{scripts}; default-src 'none'; img-src 'self' data: blob:; "
+            "style-src 'self' 'unsafe-inline'; font-src 'self' data:; "
+            + ("script-src 'self' 'unsafe-inline'; " if scripts else "")
+            + "connect-src 'none'; form-action 'none'; base-uri 'none'"
+        )
+    return FileResponse(f, headers=headers)
 
 
 TAIL_CHUNK = 8 << 20
@@ -792,25 +908,15 @@ async def ws(websocket: WebSocket, pid: str, after: int = 0):
     if not p:
         await websocket.close(code=4404)
         return
-    await websocket.accept()
-    loop = asyncio.get_running_loop()
-    queue: asyncio.Queue = asyncio.Queue()
+    from . import live
+    await live.connect(websocket, p, after)
 
-    def listener(event: dict) -> None:
-        loop.call_soon_threadsafe(queue.put_nowait, event)
+# Share the existing project manager, authentication, and build pipeline with the new editor.
+from .workbench import attach_workbench
+attach_workbench(app, mgr)
+collaboration.attach_collaboration(app, mgr)
+app.add_middleware(collaboration.AccessMiddleware, get_manager=mgr)
 
-    with p.lock:
-        backlog = [e for e in p.events if e["seq"] > after]
-        p.listeners.append(listener)
-    try:
-        for e in backlog:
-            await websocket.send_text(json.dumps(e))
-        while True:
-            e = await queue.get()
-            await websocket.send_text(json.dumps(e))
-    except (WebSocketDisconnect, RuntimeError):
-        pass
-    finally:
-        with p.lock:
-            if listener in p.listeners:
-                p.listeners.remove(listener)
+# Production owns a private sidecar store and a scoped supplier portal.
+from .production import attach_production
+attach_production(app, mgr)

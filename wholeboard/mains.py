@@ -18,9 +18,9 @@ Requirements, for pollution degree 2 and FR-4 (material group IIIb), overvoltage
   - from the mains side to the low-voltage side, mounting holes and anything else: IEC 62368-1 / IEC 60664-1
     reinforced insulation: clearance for the next mains transient step up (3.0 mm at 230 V), creepage twice the
     basic value (5.0 mm at 250 V). Creepage runs along the board surface, so a milled slot (at least 1 mm wide)
-    makes it longer: WholeBoard cuts one under each barrier part whose pins are closer than that, unless the part
+    makes it longer: OpenFabro cuts one under each barrier part whose pins are closer than that, unless the part
     says "slot": false.
-WholeBoard refuses to finish a mains design with no fuse on the mains input, no isolation barrier (when isolated)
+OpenFabro refuses to finish a mains design with no fuse on the mains input, no isolation barrier (when isolated)
 or a spacing that fails, and says why. These checks are an aid, not a certification: have a mains design
 reviewed, and build it into an enclosure that keeps fingers out.
 """
@@ -131,7 +131,7 @@ def validate(spec: dict) -> tuple[list[str], list[str]]:
         if guess:
             (errors if parts else warnings).append(
                 f"Nets {', '.join(guess)} look like mains" + (f" (and {', '.join(parts[:4])} are mains parts)" if parts else "")
-                + ". Declare them in \"mains\" ({\"nets\": [...], \"volts\": 230}) so WholeBoard checks creepage, "
+                + ". Declare them in \"mains\" ({\"nets\": [...], \"volts\": 230}) so OpenFabro checks creepage, "
                 "clearance, the fuse and the isolation barrier; if they are not mains, rename them.")
         elif parts:
             warnings.append(f"{', '.join(parts[:4])} look like mains parts; if the board connects to mains, declare "

@@ -1,5 +1,46 @@
+# Python environments, bytecode and packaging
 .venv/
+venv/
 __pycache__/
+*.py[cod]
 *.egg-info/
+/build/
+/dist/
+
+# Local settings, credentials and project data
+/.local/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Generated documentation, dependencies and test artifacts
+/site/
+node_modules/
 .pytest_cache/
-site/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+/test-results/
+/playwright-report/
+
+# Workstation files and internal work logs
+.DS_Store
+Thumbs.db
+/WORK_STATE.md
+/docs/production-coordination-flux.md
+/docs/production-mvp-result.md
+
+# Separate local research project; not part of OpenFabro
+/driving_into_world/
+
+# Third-party UI reference captures retained locally for design comparison
+/docs/reference/flux-*.png
+/docs/reference/flux-*.webp
+/docs/reference/workbench-3d.png
+/docs/reference/workbench-first.png
+/docs/reference/workbench-inspector.png

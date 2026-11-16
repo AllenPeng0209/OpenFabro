@@ -10,6 +10,7 @@ import platform
 import re
 import shutil
 import subprocess
+import xml.etree.ElementTree as ET
 from collections import Counter
 from pathlib import Path
 
@@ -29,7 +30,8 @@ def find_kicad_cli(cfg: dict | None = None) -> str | None:
         return found
     system = platform.system()
     if system == "Darwin":
-        cands = ["/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli"]
+        cands = ["/Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli",
+                 str(Path.home() / "Applications/KiCad/KiCad.app/Contents/MacOS/kicad-cli")]
     elif system == "Windows":
         pf = os.environ.get("ProgramFiles", r"C:\Program Files")
         cands = [rf"{pf}\KiCad\{v}\bin\kicad-cli.exe" for v in ("10.0", "9.0")]
@@ -59,9 +61,25 @@ def version() -> str | None:
         return None
 
 
-def drc(pcb: Path, refill: bool = True, save: bool = True) -> dict:
+def schematic_nets(sch: Path) -> dict[str, set[str]]:
+    """Export KiCad's actual electrical interpretation, without reusing old output."""
+    out = sch.with_suffix(".net.xml")
+    out.unlink(missing_ok=True)
+    result = run(["sch","export","netlist","--format","kicadxml","-o",str(out),str(sch)],cwd=sch.parent)
+    if result.returncode != 0 or not out.is_file():
+        raise KiCadError(f"Schematic netlist export failed: {result.stderr.strip() or result.stdout.strip()}")
+    try:
+        root = ET.parse(out)
+    except ET.ParseError as error:
+        raise KiCadError(f"Schematic netlist export is invalid: {error}") from error
+    return {str(net.get("name")): {f"{node.get('ref')}.{node.get('pin')}" for node in net.findall("node")}
+            for net in root.findall("./nets/net")}
+
+
+def drc(pcb: Path, refill: bool = True, save: bool = True, report_path: Path | None = None) -> dict:
     """Run the DRC (optionally refilling zones and saving them). Returns a summary."""
-    out = pcb.with_suffix(".drc.json")
+    out = report_path or pcb.with_suffix(".drc.json")
+    out.unlink(missing_ok=True)
     args = ["pcb", "drc", "--format", "json", "--severity-all", "-o", str(out)]
     if refill:
         args.append("--refill-zones")
@@ -121,11 +139,15 @@ def render(pcb: Path, out: Path, view: str = "top", width: int = 1400, height: i
 
 def export_fab(pcb: Path, out_dir: Path, layers: int, extra_layers: tuple[str, ...] = ()) -> dict:
     """Gerbers + drill files (zipped for JLCPCB) and the raw placement file."""
+    if layers==1:
+        from .geometry import read,explicit_copper_layers
+        unexpected=explicit_copper_layers(read(pcb))-{'F.Cu'}
+        if unexpected:raise KiCadError('One-sided fabrication would omit actual copper on '+', '.join(sorted(unexpected))+'. Resolve the layer construction first.')
     gerb = out_dir / "gerbers"
     if gerb.exists():
         shutil.rmtree(gerb)
     gerb.mkdir(parents=True)
-    cu = ["F.Cu", *[f"In{i}.Cu" for i in range(1, max(0, layers - 2) + 1)], "B.Cu"]
+    cu = ["F.Cu", *[f"In{i}.Cu" for i in range(1, max(0, layers - 2) + 1)], *(["B.Cu"] if layers>1 else [])]
     lay = ",".join(cu + ["F.Paste", "B.Paste", "F.SilkS", "B.SilkS", "F.Mask", "B.Mask", "Edge.Cuts", *extra_layers])
     r = run(["pcb", "export", "gerbers", "-l", lay, "--subtract-soldermask", "--no-x2",
              "-o", str(gerb) + os.sep, str(pcb)], cwd=pcb.parent)
@@ -208,7 +230,7 @@ def jlc_cpl(pos_csv: Path, out: Path, exclude_refs: set[str] = frozenset(),
     return out, fixes
 
 
-# ERC findings that come from how WholeBoard writes the schematic, not from the circuit.
+# ERC findings that come from how OpenFabro writes the schematic, not from the circuit.
 ERC_IGNORED = {"footprint_link_issues", "lib_symbol_issues", "lib_symbol_mismatch", "endpoint_off_grid",
                "simulation_model_issue", "unannotated", "power_pin_not_driven", "footprint_filter",
                "single_global_label", "unresolved_variable"}
@@ -217,6 +239,7 @@ ERC_IGNORED = {"footprint_link_issues", "lib_symbol_issues", "lib_symbol_mismatc
 def erc(sch: Path) -> dict:
     """KiCad's electrical rules check on a schematic. Returns a summary."""
     out = sch.with_suffix(".erc.json")
+    out.unlink(missing_ok=True)
     r = run(["sch", "erc", "--format", "json", "--severity-all", "-o", str(out), str(sch)], cwd=sch.parent)
     if not out.exists():
         raise KiCadError(f"ERC failed: {r.stderr.strip() or r.stdout.strip()}")
@@ -229,5 +252,11 @@ def erc(sch: Path) -> dict:
                 "items": [i.get("description") for i in v.get("items", [])][:4]}
     errors = [brief(v) for v in keep if v.get("severity") == "error"]
     warnings = [brief(v) for v in keep if v.get("severity") != "error"]
-    return {"errors": errors[:40], "warnings": warnings[:40], "ignored": len(viols) - len(keep),
+    ignored = [v for v in viols if v.get("type") in ERC_IGNORED]
+    raw_errors = sum(v.get("severity") == "error" for v in viols)
+    return {"errors": errors[:40], "warnings": warnings[:40], "ignored": len(ignored),
+            "ignored_list": [brief(v) for v in ignored[:40]],
+            "ignored_by_type": dict(Counter(v.get("type") for v in ignored)),
+            "raw_error_count": raw_errors, "raw_clean": raw_errors == 0,
+            "filter_policy": sorted(ERC_IGNORED),
             "by_type": dict(Counter(v.get("type") for v in keep)), "clean": not errors}

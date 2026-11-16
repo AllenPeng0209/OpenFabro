@@ -1,70 +1,192 @@
-# WholeBoard
+<p align="center">
+  <img src="docs/assets/openfabro-mascot.png" width="160" alt="Fabro, the OpenFabro AI hardware engineer">
+</p>
 
-> **🚧 Under construction.** WholeBoard is in active development. Expect rough edges, breaking
-> changes and boards that need a human check before you order them.
+<h1 align="center">OpenFabro</h1>
 
-An AI workbench for printed circuit boards. Describe the board you want in plain words.
-WholeBoard's designer agent asks you what it needs to know, picks real JLCPCB parts and KiCad
-footprints, writes the schematic and board, has **TraceMaker** place and route it, checks it with
-**KiCad's** design rule check and **ngspice**, and prices the whole job at **JLCPCB**: bare PCB,
-assembly, every component and shipping. It then designs a 3D-printable enclosure for the board in
-**FreeCAD**. Each step shows a visual you can inspect.
+<p align="center"><strong>The open-source AI hardware engineer.</strong></p>
+<p align="center">Circuits. Enclosures. Complete devices.</p>
 
-Runs on Linux, macOS and Windows. It is a local web app: the server runs on your machine and the
-interface opens in your browser.
+<p align="center">
+  <a href="https://github.com/AllenPeng0209/OpenFabro/actions/workflows/ci.yml"><img src="https://github.com/AllenPeng0209/OpenFabro/actions/workflows/ci.yml/badge.svg" alt="Continuous integration"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0--or--later-blue.svg" alt="License: GPL-3.0-or-later"></a>
+  <a href="pyproject.toml"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white" alt="Python 3.10 or newer"></a>
+  <img src="https://img.shields.io/badge/Status-Developer%20Preview-157A63" alt="Status: Developer Preview">
+</p>
 
-**Documentation: <https://dingooz.github.io/WholeBoard/>**
+<p align="center">
+  <a href="#quick-start">Quick Start</a> ·
+  <a href="docs/index.md">Documentation</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a> ·
+  <a href="https://github.com/AllenPeng0209/OpenFabro/issues">Issues</a>
+</p>
 
-![A finished board in WholeBoard: the designer's chat on the left, the routed board and KiCad DRC results on the right](docs/screenshots/board.png)
+OpenFabro brings AI-assisted electronics, mechanical design, and manufacturing preparation into
+one local workspace. Start with a product requirement, develop an editable circuit and enclosure,
+run engineering checks, and assemble the files a supplier needs to review your design.
 
-![The simulation step: ngspice results for a 555 blinker, with rail and timing voltages plotted over time](docs/screenshots/simulation.png)
+The goal is straightforward: **make the entire device part of the design process.** Board geometry,
+mounting points, connector access, component clearances, firmware pin assignments, and production
+files belong in the same engineering conversation.
 
-![The enclosure step: a 3D preview of the FreeCAD-built box with its engraved lid lifted off the board](docs/screenshots/enclosure.png)
+![OpenFabro workbench with the AI assistant and an editable USB-C reference schematic](docs/screenshots/openfabro-workbench.png)
+
+*A local engineering workspace with AI assistance, native KiCad geometry, and editable project files.
+The illustrated USB-C project is a reference design.*
+
+## Why OpenFabro
+
+- **Design across disciplines.** Work on circuits, PCB layout, mechanical parts, enclosures, and
+  assembly context without losing sight of the complete device.
+- **Keep the engineering inspectable.** Review native files, simulation results, check reports,
+  design revisions, and the evidence behind a proposed change.
+- **Choose your AI provider.** Use a locally signed-in Codex CLI, Claude, or an OpenAI-compatible
+  provider, including a local model server.
+- **Own your workspace.** Run the application on your computer and keep project files on your
+  filesystem. AI requests go to the provider you configure.
+- **Prepare a concrete handoff.** Export editable design files and freeze manufacturing packages
+  with checksums, design snapshots, and supporting engineering findings.
+
+## What you can do
+
+| Area | Capabilities |
+| --- | --- |
+| **Electronics** | Native KiCad schematic and PCB generation; component and net editing; reusable circuit blocks; hierarchical sheets and parametric symbol layouts. |
+| **PCB layout** | Interactive traces and vias, differential routing, length tuning, copper editing, physical stackups, layer controls, and individual pad geometry. |
+| **Mechanical design** | Parametric parts and constrained sketches, linked assemblies, native CAD and mesh imports, drawing profiles, materials, and geometry inspection. |
+| **Engineering checks** | KiCad ERC/DRC, ngspice simulation, power budgets, trace heating, voltage drop, impedance, and enclosure thermal estimates, with the relevant tools installed. |
+| **AI assistance** | Separate Chat and Agent modes; reviewed design and document proposals; engineering tools; project context; version guards for concurrent edits. |
+| **Project workflow** | Local files and Markdown documents, revision history, undo/redo, draft recovery, BOM export, and scoped sharing roles. |
+| **Manufacturing preparation** | Gerbers, drills, BOM and placement files; enclosure exports; starter firmware; immutable production ZIPs; supplier RFQs, quotation records, and progress tracking. |
+
+![OpenFabro enclosure concept with an exploded lid and reference board](docs/screenshots/openfabro-enclosure.png)
+
+*An enclosure concept preview. Native CAD generation and exported geometry are separate steps.*
 
 ## Quick start
 
+**Requirements:** Git and Python 3.10 or newer. OpenFabro runs as a Python server with a browser
+interface. Native engineering tools are installed separately; Node.js is needed only for frontend
+development and browser tests.
+
+### macOS and Linux
+
+```sh
+git clone https://github.com/AllenPeng0209/OpenFabro.git
+cd OpenFabro
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e .
+python -m openfabro
 ```
-./install.sh        # Linux and macOS; on Windows, double-click install.bat
-./run.sh            # or run.bat; the browser opens at http://127.0.0.1:8770/
+
+### Windows PowerShell
+
+```powershell
+git clone https://github.com/AllenPeng0209/OpenFabro.git
+cd OpenFabro
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -e .
+.\.venv\Scripts\python.exe -m openfabro
 ```
 
-The installer sets up Python, KiCad, TraceMaker, FreeCAD, ngspice and KiCad's libraries, asking
-before it installs system packages. `.venv/bin/python -m wholeboard.doctor` shows what is installed.
-Set an AI in *Settings*: Claude, OpenAI, Grok, or a local model through any OpenAI-compatible
-server. Or [design with Claude Code](https://dingooz.github.io/WholeBoard/how-to/claude-code/) on your Claude plan. Then press **Take a tour**, or follow [Your first board](https://dingooz.github.io/WholeBoard/tutorials/first-board/).
+Open **[http://127.0.0.1:8770](http://127.0.0.1:8770)** if the browser does not open automatically.
+The default command listens on localhost. Use `--port 8780` to select another port or
+`--no-browser` to suppress the browser launch.
 
-## What it does
+For a checkout-local workspace on macOS or Linux, use `./run-workbench.sh`. It stores settings and
+projects under the ignored `.local/` directory. The [installation guide](docs/how-to/install.md)
+also covers the platform installers and native tool setup.
 
-- **Designs from proven building blocks**: USB-C power and PD, regulators, ESP32, RP2040, STM32
-  and nRF52 modules, Ethernet, CAN, RS-485, sensors and more, with real LCSC parts.
-- **Checks before you order**: ERC, ngspice simulation and part ratings, power budget, KiCad DRC
-  against JLCPCB's limits, IPC-2152 trace heating, voltage drop, decoupling, controlled impedance
-  with USB/Ethernet/RMII/QSPI/RF interface profiles, and mains creepage and clearance with
-  isolation slots.
-- **Shows the simulation on the 3D board**: current flow, LED brightness, a heat map, the board in
-  its enclosure, and sliders that re-run ngspice.
-- **Prices the job**: JLCPCB with live part prices, cheaper drop-in parts, panels drawn with KiKit,
-  Mouser and DigiKey for parts JLCPCB cannot fit, OSH Park, PCBWay and Aisler for comparison.
-- **Gets it built**: Gerbers, BOM and CPL, an assembly page, a bring-up guide, starter firmware
-  with a pin map, and a 3D-printed enclosure with its heat checked.
-- **Works with what you have**: import KiCad projects, keep your edits in KiCad, fit a board to a
-  DXF outline or a box you already own, and use the checks from other agents over MCP.
+### Connect your engineering tools
+
+```sh
+python -m openfabro.doctor
+```
+
+The diagnostic command reports detected tools and missing dependencies. Configure paths in
+**Settings** when an application is installed outside the usual locations.
+
+| Tool | Purpose |
+| --- | --- |
+| **KiCad and its libraries** | Native schematic and PCB files, geometry, electrical and layout checks, and fabrication exports. |
+| **TraceMaker** | Automated component placement and PCB routing. |
+| **ngspice** | Circuit simulation and interactive simulation analysis. |
+| **FreeCAD** | Enclosure generation and supported native CAD operations. |
+| **PlatformIO** | Optional compilation and flashing of generated starter firmware. |
+
+### Start your first project
+
+1. Create a project or open the bundled reference design.
+2. Choose an AI provider in **Settings** when you want AI assistance. Opening the workspace and
+   editing a project do not require an AI request.
+3. Describe the requirements, inspect proposed changes, and refine the schematic, layout, and
+   mechanical design.
+4. Run the relevant checks, inspect their reports, and prepare a production package for review.
+
+For example:
+
+> Design a compact USB-C-powered environmental sensor. Plan the power budget, sensor connections,
+> board dimensions, enclosure openings, and firmware pin map. Identify the engineering checks
+> required before fabrication.
+
+Follow [Your first board](docs/tutorials/first-board.md) for the engineering pipeline, or read the
+[workbench guide](docs/workbench.md) for the interactive editor.
+
+## Project status
+
+OpenFabro is an active **developer preview**. Interfaces and file formats may change, and feature
+coverage varies across design workflows. The [implementation status](docs/FLUX_PARITY.md) and
+[roadmap](ROADMAP.md) document remaining work.
+
+Engineering checks report the evidence available from the tools that actually ran. Generated
+designs, simulations, and manufacturing packages require engineering review and physical
+validation before fabrication or deployment.
+
+Supplier workflows currently use exported packages and manual handoff. Direct JLCPCB and PCBWay
+factory API integrations are **not enabled**. Creating an RFQ, recording a quote, or accepting an
+offer does not place or pay for a factory order. See the [production workflow](docs/production-mvp.md).
 
 ## Documentation
 
-| | |
-|---|---|
-| [Tutorials](https://dingooz.github.io/WholeBoard/tutorials/) | Your first board; a mains-powered board |
-| [How-to guides](https://dingooz.github.io/WholeBoard/how-to/) | Install, import, panels, ordering, firmware, MCP, the benchmark, your own blocks |
-| [Reference](https://dingooz.github.io/WholeBoard/reference/) | The design spec, blocks, profiles, mains figures, checks, settings, the Python API |
-| [Explanation](https://dingooz.github.io/WholeBoard/explanation/) | How a build works, how rules reach the router, the heat models, the two AI models |
-| [Standards and sources](https://dingooz.github.io/WholeBoard/standards/) | Every engineering figure and price, where it comes from and when it was checked |
+| Resource | Start here for |
+| --- | --- |
+| [Documentation overview](docs/index.md) | Tutorials, how-to guides, references, and engineering explanations. |
+| [Workbench guide](docs/workbench.md) | Editing, files, AI assistance, mechanical workflows, and current boundaries. |
+| [Installation](docs/how-to/install.md) | Platform setup, native dependencies, and diagnostics. |
+| [Production handoff](docs/production-mvp.md) | Estimates, frozen packages, supplier inquiries, and quotation tracking. |
+| [MCP integration](docs/how-to/mcp.md) | Using the engineering tools from another agent. |
+| [Development](docs/development.md) | Environment setup, test commands, documentation builds, and architecture. |
+| [Changelog](CHANGELOG.md) | Notable changes and engineering history. |
 
-The source is in [`docs/`](docs/); `mkdocs serve` previews it (see
-[Development](https://dingooz.github.io/WholeBoard/development/)). Changes are listed in
-[CHANGELOG.md](CHANGELOG.md).
+## Development and contributing
 
-## Licence
+Contributions are welcome across electrical engineering, mechanical CAD, simulation, frontend
+development, testing, and documentation. Start with [CONTRIBUTING.md](CONTRIBUTING.md), then open
+an issue or a focused pull request with enough evidence to review the change.
 
-WholeBoard is free software under the GNU General Public License, version 3 or later. See
-[LICENSE](LICENSE).
+```sh
+python -m pip install -e ".[dev,docs]"
+npm ci
+python -m pytest tests -q
+npm test
+python -m mkdocs build --strict
+```
+
+See [SECURITY.md](SECURITY.md) for vulnerability reporting and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+for upstream and bundled dependency attribution.
+
+## License and acknowledgments
+
+OpenFabro is free software licensed under the **GNU General Public License, version 3 or later**.
+See [LICENSE](LICENSE).
+
+OpenFabro builds on [WholeBoard](https://github.com/DingoOz/WholeBoard), whose engineering foundation
+and Git history are retained. It also depends on the work of the KiCad, TraceMaker, ngspice,
+FreeCAD, Open CASCADE, and wider open-source communities. Bundled third-party assets retain
+their respective license notices.
+
+The public package and command are `openfabro`. The `wholeboard` implementation namespace,
+legacy commands, and existing settings remain supported for compatibility.

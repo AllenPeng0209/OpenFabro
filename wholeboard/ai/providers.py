@@ -88,7 +88,7 @@ def unreachable(url: str, e: Exception) -> str:
     if "ConnectionRefusedError" in causes or "ConnectError" in causes:
         return f"Nothing is answering at {url}. Start the AI server, or check its address in Settings."
     if "RemoteProtocolError" in causes or "ReadError" in causes:
-        return (f"The AI server at {url} dropped the connection before it replied. Something between WholeBoard and "
+        return (f"The AI server at {url} dropped the connection before it replied. Something between OpenFabro and "
                 "the model, such as a proxy or port forwarder, may be giving up on slow replies: try the model "
                 "server's own port.")
     if "APITimeoutError" in causes:
@@ -129,8 +129,13 @@ class AnthropicSession:
     def label(self) -> str:
         return f"Claude ({self.model})"
 
-    def add_user(self, text: str) -> None:
-        self.messages.append({"role": "user", "content": text})
+    def add_user(self, text: str, *,images=None) -> None:
+        if not images:self.messages.append({"role":"user","content":text});return
+        content=[{'type':'text','text':text}]
+        for image in images:
+            content.append({'type':'text','text':image.get('label','User image reference')})
+            content.append({'type':'image','source':{'type':'base64','media_type':image['media_type'],'data':image['data']}})
+        self.messages.append({'role':'user','content':content})
 
     def add_tool_results(self, results: list[tuple[str, str | dict, bool]], extra_text: str | None = None) -> None:
         """A result is text, or {"text": ..., "images": [{"media_type", "data" (base64), "label"}]}."""
@@ -232,7 +237,7 @@ def list_models(cfg: dict) -> list[str]:
     return sorted(m.id for m in client.models.list())
 
 
-# Where local OpenAI-compatible servers listen by default, on the computer running WholeBoard.
+# Where local OpenAI-compatible servers listen by default, on the computer running OpenFabro.
 LOCAL_SERVERS = [
     ("Ollama", 11434), ("LM Studio", 1234), ("llama.cpp or Strata", 8080), ("vLLM", 8000), ("Jan", 1337),
     ("KoboldCpp", 5001), ("text-generation-webui", 5000), ("GPT4All", 4891),
@@ -499,14 +504,21 @@ class OpenAISession:
     def label(self) -> str:
         return f"{self.model} (OpenAI-compatible)"
 
-    def add_user(self, text: str) -> None:
-        self.messages.append({"role": "user", "content": text})
+    def add_user(self, text: str, *,images=None) -> None:
+        if not images:self.messages.append({"role":"user","content":text});return
+        content=[{'type':'text','text':text}]
+        for image in images:
+            content.append({'type':'text','text':image.get('label','User image reference')})
+            content.append({'type':'image_url','image_url':{'url':f'data:{image["media_type"]};base64,{image["data"]}'}})
+        self.messages.append({'role':'user','content':content,'_images':True,'_required_images':True})
 
     def add_tool_results(self, results: list[tuple[str, str | dict, bool]], extra_text: str | None = None) -> None:
         images: list = []
+        required=False
         for tid, content, err in results:
             if isinstance(content, dict):
                 images += content.get("images") or []
+                required=required or bool(content.get('require_images'))
                 content = content.get("text", "")
             self.messages.append({"role": "tool", "tool_call_id": tid,
                                   "content": ("ERROR: " if err else "") + content})
@@ -516,18 +528,23 @@ class OpenAISession:
                             + ", ".join(i.get("label", "image") for i in images)}]
             parts += [{"type": "image_url", "image_url": {"url": f"data:{i['media_type']};base64,{i['data']}"}}
                       for i in images]
-            self.messages.append({"role": "user", "content": parts, "_images": True})
+            self.messages.append({"role": "user", "content": parts, "_images": True,**({'_required_images':True} if required else {})})
         if extra_text:
             self.messages.append({"role": "user", "content": extra_text})
 
     def _drop_images(self) -> bool:
         """Replace image messages with a note, for servers whose model cannot read images."""
+        for index,message in enumerate(self.messages):
+            if message.get('_images') and message.get('_required_images') and not any(later.get('role')=='assistant' for later in self.messages[index+1:]):
+                raise AIError('The selected model could not read the marked image. Choose a model with image input; visual inspection was not performed.')
         found = False
         for m in self.messages:
             if m.get("_images"):
                 m.pop("_images")
-                m["content"] = ("(The board renders could not be shown: this model does not accept images. "
-                                "Skip report_review.)")
+                if m.get('_required_images'):
+                    text='\n'.join(part.get('text','') for part in m['content'] if part.get('type')=='text')
+                    m['content']=text+'\n(The marked image is omitted from this request because the model cannot accept images. Do not claim visual inspection in this turn.)'
+                else:m["content"] = ("(The board renders could not be shown: this model does not accept images. Skip report_review.)")
                 found = True
         if found:
             self.vision_failed = True
@@ -575,7 +592,10 @@ class OpenAISession:
                             "call the tool again if you need all of it)")
         elif m.get("_images") or isinstance(m.get("content"), list):
             m.pop("_images", None)
-            m["content"] = "(Board renders shown here earlier were removed to fit the model's context.)"
+            if m.get('_required_images'):
+                text='\n'.join(part.get('text','') for part in m['content'] if part.get('type')=='text')
+                m['content']=text+'\n(The older marked image was removed to fit context; do not infer unseen image details.)'
+            else:m["content"] = "(Board renders shown here earlier were removed to fit the model's context.)"
         for tc in m.get("tool_calls") or []:
             if len(tc["function"]["arguments"]) > 1500:
                 tc["function"]["arguments"] = json.dumps(

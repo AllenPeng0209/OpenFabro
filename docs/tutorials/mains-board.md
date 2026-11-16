@@ -1,11 +1,11 @@
 # A mains-powered board
 
 This lesson builds a zero-cross detector: a board that plugs into 230 V mains and gives a microcontroller a pulse
-each time the mains voltage crosses zero, plus 5 V to run it. Along the way you will see the checks WholeBoard
+each time the mains voltage crosses zero, plus 5 V to run it. Along the way you will see the checks OpenFabro
 applies to anything that touches mains.
 
 !!! danger
-    Mains can kill. WholeBoard's checks are an aid, not a certification. Do not build or power a mains board
+    Mains can kill. OpenFabro's checks are an aid, not a certification. Do not build or power a mains board
     unless you know how to do it safely, have the design reviewed, and put it in an enclosure that keeps fingers
     out.
 
@@ -31,7 +31,7 @@ varistor, an AC-DC module), the build is refused until it is added.
 
 ## 3. The design check
 
-Before anything is drawn, WholeBoard checks:
+Before anything is drawn, OpenFabro checks:
 
 - **A fuse** on the mains input (`F1`, the 5×20 mm holder).
 - **An isolation barrier**: something the mains side cannot reach through. Here there are two: the HLK-PM01
@@ -54,13 +54,13 @@ The [Mains requirements](../reference/mains.md) page has the figures for other v
 ## 5. The slot
 
 The LTV-814S optocoupler is in an SO-4 package. Its input pins (mains side) and output pins (low-voltage side)
-are about 4.5 mm apart along the board: short of the 5 mm creepage. WholeBoard cuts a 1 mm milled slot under the
+are about 4.5 mm apart along the board: short of the 5 mm creepage. OpenFabro cuts a 1 mm milled slot under the
 part, between its two rows of pins, and the log says so. Creepage is measured along the surface, so the path now
 goes round the slot: 6.4 mm.
 
 ## 6. After DRC: the mains check
 
-After the copper pour and DRC, WholeBoard measures every pair of items across the barrier itself (pads with their
+After the copper pour and DRC, OpenFabro measures every pair of items across the barrier itself (pads with their
 real shapes, tracks, vias, zones), including the path round the slot. The **Board checks** card lists each pair
 with its clearance and creepage against the requirement. Any failure stops the build and goes back to the designer.
 

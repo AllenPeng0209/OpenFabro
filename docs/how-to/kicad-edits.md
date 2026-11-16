@@ -1,8 +1,8 @@
 # Edit the board in KiCad
 
-WholeBoard's output is an ordinary KiCad project, and changes you make to it are kept.
+OpenFabro's output is an ordinary KiCad project, and changes you make to it are kept.
 
-1. Open the board from the revision's folder (`~/WholeBoardProjects/<project>/revN/`) in KiCad.
+1. Open the board from the revision's folder (`~/OpenFabroProjects/<project>/revN/`) in KiCad.
 2. Move parts, reroute or widen tracks, and save.
 3. Ask the designer for a change, or press rebuild.
 

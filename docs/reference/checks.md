@@ -1,6 +1,6 @@
 # Checks
 
-Everything WholeBoard checks before you order, in the order the build runs them. A check marked **stops** sends the
+Everything OpenFabro checks before you order, in the order the build runs them. A check marked **stops** sends the
 result back to the designer to fix; the others are warnings shown with the build.
 
 | Check | When | What | Stops |
@@ -8,7 +8,7 @@ result back to the designer to fix; the others are warnings shown with the build
 | Design check | Before drawing | Footprints and symbols exist; pad names exist; every pad is in a net or `no_connect`; parts are in stock; block ports are connected | yes |
 | Mains design | Before drawing | A fuse on the mains input; an isolation barrier when `isolated`; nets that look like mains with mains parts must be declared | yes |
 | Fiducials | Before drawing | Parts at 0.5 mm pitch or finer with no fiducials and no panel | warning |
-| ERC | After the schematic | KiCad's electrical rules check. Findings that only reflect how WholeBoard draws schematics are filtered out | warning |
+| ERC | After the schematic | KiCad's electrical rules check. Findings that only reflect how OpenFabro draws schematics are filtered out | warning |
 | Simulation | After the schematic | ngspice: supplies, ratings (resistor power, LED current, capacitor voltage, regulator heat and dropout), parts outside their supply range, failed `expect` entries | yes |
 | Placement | After placement | Every part fits on the board | yes |
 | Routing | After routing | Every connection routed | yes |

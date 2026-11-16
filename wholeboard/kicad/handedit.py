@@ -72,7 +72,7 @@ def _shape(outline: list | None) -> list:
 
 
 def diff(before: dict, after: dict) -> dict:
-    """What changed between the board WholeBoard routed and the one saved from KiCad.
+    """What changed between the board OpenFabro routed and the one saved from KiCad.
 
     Returns {"moved": {ref: placement}, "held": {ref: placement}, "nets": {net: copper}, "cleared": [net],
     "removed": [ref], "other": [notes]}. Placements and copper are in the spec's board coordinates."""
@@ -127,7 +127,7 @@ def diff(before: dict, after: dict) -> dict:
 
 
 def detect(artifacts: dict) -> dict | None:
-    """The hand edits in the last finished board, or None when it was not changed since WholeBoard wrote it."""
+    """The hand edits in the last finished board, or None when it was not changed since OpenFabro wrote it."""
     pcb = Path((artifacts or {}).get("pcb") or "")
     if not pcb.is_file():
         return None

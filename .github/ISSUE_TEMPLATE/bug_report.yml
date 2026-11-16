@@ -1,0 +1,33 @@
+name: Bug report
+description: Report a reproducible problem in OpenFabro.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: Remove credentials, private project data, and access-bearing links. Use SECURITY.md for vulnerabilities.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include a minimal sanitized example or fixture when possible.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Commit, operating system, Python version, browser, and relevant native tool versions.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs and evidence
+      description: Relevant sanitized output, screenshots, and check reports.

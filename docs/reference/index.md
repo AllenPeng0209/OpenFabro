@@ -1,6 +1,6 @@
 # Reference
 
-Exact descriptions of what WholeBoard accepts and does. Pages marked *generated* are written from the code each
+Exact descriptions of what OpenFabro accepts and does. Pages marked *generated* are written from the code each
 time the site is built, so they match the version you are reading.
 
 | Page | |
@@ -17,7 +17,7 @@ time the site is built, so they match the version you are reading.
 | [Settings](settings.md) | Every setting and its default *(generated)* |
 | [The interface](interface.md) | Keyboard shortcuts, the board list, the step bar, notifications |
 | [Colour themes](themes.md) | The eleven themes, with screenshots, and how to add one |
-| [Command line](cli.md) | `wholeboard`, `doctor`, `mcp`, `bench` |
+| [Command line](cli.md) | `openfabro`, `doctor`, `mcp`, `bench` |
 | [Files and folders](files.md) | Where things are saved |
-| [Limits](limits.md) | What WholeBoard does not do |
+| [Limits](limits.md) | What OpenFabro does not do |
 | [Python API](../api/index.md) | Modules and functions *(generated)* |

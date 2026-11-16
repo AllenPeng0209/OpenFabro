@@ -1,5 +1,5 @@
 {
-  "_about": "JLCPCB price model used by WholeBoard's quote. JLCPCB does not publish a pricing formula or an open quoting API, so these values are calibrated against JLCPCB's public price pages and help articles. Edit them when JLCPCB changes its prices. Component prices are always fetched live.",
+  "_about": "JLCPCB price model used by OpenFabro's quote. JLCPCB does not publish a pricing formula or an open quoting API, so these values are calibrated against JLCPCB's public price pages and help articles. Edit them when JLCPCB changes its prices. Component prices are always fetched live.",
   "last_checked": "2026-10-20",
   "sources": [
     "https://jlcpcb.com/help/article/pcb-assembly-price",

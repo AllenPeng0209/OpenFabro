@@ -1,0 +1,210 @@
+{
+  "name": "schematic_route_headers",
+  "board": {
+    "width_mm": 60,
+    "height_mm": 40,
+    "layers": 2,
+    "ground_pour": null
+  },
+  "components": [
+    {
+      "ref": "J1",
+      "value": "Header",
+      "symbol": "Connector_Generic:Conn_01x03",
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
+      "placement": {
+        "x_mm": 10,
+        "y_mm": 10
+      }
+    },
+    {
+      "ref": "J2",
+      "value": "Header",
+      "symbol": "Connector_Generic:Conn_01x03",
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
+      "placement": {
+        "x_mm": 25,
+        "y_mm": 10
+      }
+    },
+    {
+      "ref": "J3",
+      "value": "Header",
+      "symbol": "Connector_Generic:Conn_01x03",
+      "footprint": "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
+      "placement": {
+        "x_mm": 45,
+        "y_mm": 10
+      }
+    }
+  ],
+  "nets": [
+    {
+      "name": "SIG1",
+      "pins": [
+        "J1.1",
+        "J2.1",
+        "J3.1"
+      ]
+    },
+    {
+      "name": "SIG2",
+      "pins": [
+        "J1.2",
+        "J2.2",
+        "J3.2"
+      ]
+    },
+    {
+      "name": "SIG3",
+      "pins": [
+        "J1.3",
+        "J2.3",
+        "J3.3"
+      ]
+    }
+  ],
+  "editor": {
+    "positions": {
+      "J1": [
+        100,
+        100
+      ],
+      "J2": [
+        400,
+        200
+      ],
+      "J3": [
+        900,
+        500
+      ]
+    },
+    "connection_guides": [
+      {
+        "id": "sig1-1",
+        "from": "J1.1",
+        "to": "J2.1"
+      },
+      {
+        "id": "sig1-2",
+        "from": "J2.1",
+        "to": "J3.1"
+      },
+      {
+        "id": "sig2-1",
+        "from": "J1.2",
+        "to": "J2.2"
+      },
+      {
+        "id": "sig2-2",
+        "from": "J2.2",
+        "to": "J3.2"
+      },
+      {
+        "id": "sig3-1",
+        "from": "J1.3",
+        "to": "J2.3"
+      },
+      {
+        "id": "sig3-2",
+        "from": "J2.3",
+        "to": "J3.3"
+      }
+    ]
+  },
+  "fixed_copper": [
+    {
+      "net": "SIG1",
+      "tracks": [
+        {
+          "id": "66666666-6666-4666-8666-000000000011",
+          "a": [
+            10,
+            10.0
+          ],
+          "b": [
+            25,
+            10.0
+          ],
+          "w": 0.25,
+          "layer": "F.Cu"
+        },
+        {
+          "id": "66666666-6666-4666-8666-000000000012",
+          "a": [
+            25,
+            10.0
+          ],
+          "b": [
+            45,
+            10.0
+          ],
+          "w": 0.25,
+          "layer": "F.Cu"
+        }
+      ]
+    },
+    {
+      "net": "SIG2",
+      "tracks": [
+        {
+          "id": "66666666-6666-4666-8666-000000000021",
+          "a": [
+            10,
+            12.54
+          ],
+          "b": [
+            25,
+            12.54
+          ],
+          "w": 0.25,
+          "layer": "F.Cu"
+        },
+        {
+          "id": "66666666-6666-4666-8666-000000000022",
+          "a": [
+            25,
+            12.54
+          ],
+          "b": [
+            45,
+            12.54
+          ],
+          "w": 0.25,
+          "layer": "F.Cu"
+        }
+      ]
+    },
+    {
+      "net": "SIG3",
+      "tracks": [
+        {
+          "id": "66666666-6666-4666-8666-000000000031",
+          "a": [
+            10,
+            15.08
+          ],
+          "b": [
+            25,
+            15.08
+          ],
+          "w": 0.25,
+          "layer": "F.Cu"
+        },
+        {
+          "id": "66666666-6666-4666-8666-000000000032",
+          "a": [
+            25,
+            15.08
+          ],
+          "b": [
+            45,
+            15.08
+          ],
+          "w": 0.25,
+          "layer": "F.Cu"
+        }
+      ]
+    }
+  ]
+}

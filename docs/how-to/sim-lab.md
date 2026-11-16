@@ -22,7 +22,7 @@ wheel to zoom, right-drag to pan) with the ngspice results drawn on it.
 
 ## Put the board in its box
 
-Choose the printed enclosure, your stock case, or (before one is designed) the box WholeBoard would suggest.
+Choose the printed enclosure, your stock case, or (before one is designed) the box OpenFabro would suggest.
 Boards with an enclosure start in it. The box is drawn see-through and coloured by its surface temperatures, and
 the circuit is re-simulated in what the board sees inside: warmer air that barely moves, plus the cooler walls it
 radiates to. Every rating check, part temperature and the heat map then reflect the box.

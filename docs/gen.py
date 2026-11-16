@@ -115,7 +115,7 @@ def mains_page() -> str:
                   "Basic creepage (mm)", "Reinforced creepage (mm)"], rows),
            f"\nSlots cut to lengthen creepage are {mains.SLOT_W:g} mm wide. Measurements are compared with a "
            f"tolerance of {mains.TOL:g} mm.\n",
-           "\n## How parts are recognised\n\nWholeBoard matches these patterns (case-insensitive) against the part's value, "
+           "\n## How parts are recognised\n\nOpenFabro matches these patterns (case-insensitive) against the part's value, "
            "part number, footprint and description (a fuse's reference counts too). `\"barrier\"` on a part overrides the match.\n",
            *[f"\n**{what}**\n\n```text\n{pat}\n```\n" for what, pat in (
                ("Isolation barrier", mains.BARRIER.pattern + "\n(also any T or K reference, and any part with \"barrier\": true)"),
@@ -134,10 +134,10 @@ def mains_page() -> str:
 
 def mcp_page() -> str:
     out = ["# MCP tools\n", NOTE.format(src="wholeboard/mcp.py"),
-           "`python -m wholeboard.mcp` serves these tools over stdio (newline-delimited JSON-RPC; protocol versions "
+           "`python -m openfabro.mcp` serves these tools over stdio (newline-delimited JSON-RPC; protocol versions "
            + ", ".join(f"`{p}`" for p in mcp.PROTOCOLS) + "). See [Use the checks from other agents](../how-to/mcp.md).\n"]
     sections = [("Checks on any KiCad project", mcp.TOOLS, ""),
-                ("Design a board", mcp.DESIGN_TOOLS, "Claude Code designing a board in WholeBoard, which must be running. "
+                ("Design a board", mcp.DESIGN_TOOLS, "Claude Code designing a board in OpenFabro, which must be running. "
                  "See [Design with Claude Code](../how-to/claude-code.md).\n")]
     for heading, tools, intro in sections:
         out.append(f"\n## {heading}\n\n{intro}")
@@ -170,8 +170,8 @@ def jlc_page() -> str:
     rest = {k: v for k, v in cap.items() if k not in ("_about", "last_checked", "sources", "layers", "any")}
     if rest:
         out.append("\n## Other entries\n\n```json\n" + json.dumps(rest, indent=2) + "\n```\n")
-    out += ["\n## Other fabs\n\nPrices WholeBoard works out itself (the JLCPCB quote uses "
-            "[`pricing.json`](https://github.com/DingoOz/WholeBoard/blob/main/wholeboard/jlc/pricing.json)):\n\n",
+    out += ["\n## Other fabs\n\nPrices OpenFabro works out itself (the JLCPCB quote uses "
+            "[`pricing.json`](https://github.com/AllenPeng0209/OpenFabro/blob/main/wholeboard/jlc/pricing.json)):\n\n",
             table(["Fab", "Figure", "Value"], [
                 *[["OSH Park", f"{n} layers, per square inch for three boards", f"US${v:g}"] for n, v in fabs.OSHPARK.items()],
                 *[["Aisler", f"{n} layers: job fee + per cm² per board", f"€{a:g} + €{b:g}"] for n, (a, b) in fabs.AISLER.items()],
@@ -220,7 +220,7 @@ def spec_page() -> str:
     out = ["# Design spec\n", NOTE.format(src="wholeboard/ai/agent.py and the modules it includes"),
            "The design is one JSON document: the designer AI writes it, you can edit it with *Edit design JSON*, "
            "and every build starts from it. This page is the same text the designer is given, so it is exactly what "
-           "WholeBoard accepts.\n", "## Example\n", "```json\n" + example.strip() + "\n```\n"]
+           "OpenFabro accepts.\n", "## Example\n", "```json\n" + example.strip() + "\n```\n"]
     for title, text in parts:
         if text.strip():
             out += [f"## {title}\n", text_block(text)]

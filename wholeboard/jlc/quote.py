@@ -57,9 +57,9 @@ def bom_rows(spec: dict) -> list[dict]:
     spec = design.normalise(spec)
     groups: dict[tuple, dict] = {}
     for c in spec["components"]:
-        if c.get("dnp") or design.copper_only(c.get("footprint")):
+        if c.get('terminal') or c.get("dnp") or design.copper_only(c.get("footprint")):
             continue
-        fp = libs.load_footprint(c["footprint"])
+        fp = libs.load_footprint(c["footprint"],spec)
         smd_pads = tht_pads = 0
         if fp:
             for p in fp.pads:
@@ -95,7 +95,7 @@ def full_quote(spec: dict, opts: dict, log=lambda *_: None, geo: dict | None = N
     qty = int(opts.get("quantity", 5))
     opts = {**opts, "thickness_mm": b.get("thickness_mm", 1.6)}
     assumptions = [
-        f"Fab and assembly fees come from WholeBoard's JLCPCB price table (checked {P['last_checked']}). "
+        f"Fab and assembly fees come from OpenFabro's JLCPCB price table (checked {P['last_checked']}). "
         "JLCPCB has no public quote API, so confirm the final price on cart.jlcpcb.com.",
         "Component prices, stock and basic/extended status are live from JLCPCB's parts library.",
     ]

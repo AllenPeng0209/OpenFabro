@@ -1,0 +1,259 @@
+{
+  "schema": 1,
+  "name": "Constrained plate",
+  "units": "mm",
+  "parameters": {
+    "width": {
+      "value": 30,
+      "unit": "mm"
+    },
+    "height": {
+      "value": 20,
+      "unit": "mm"
+    },
+    "depth": {
+      "value": 4,
+      "unit": "mm"
+    },
+    "hole_radius": {
+      "value": 2,
+      "unit": "mm"
+    }
+  },
+  "features": [
+    {
+      "id": "profile",
+      "op": "sketch",
+      "geometry": [
+        {
+          "id": "bottom",
+          "type": "line",
+          "start": [
+            0,
+            0
+          ],
+          "end": [
+            29,
+            0
+          ]
+        },
+        {
+          "id": "right",
+          "type": "line",
+          "start": [
+            29,
+            0
+          ],
+          "end": [
+            29,
+            19
+          ]
+        },
+        {
+          "id": "top",
+          "type": "line",
+          "start": [
+            29,
+            19
+          ],
+          "end": [
+            0,
+            19
+          ]
+        },
+        {
+          "id": "left",
+          "type": "line",
+          "start": [
+            0,
+            19
+          ],
+          "end": [
+            0,
+            0
+          ]
+        },
+        {
+          "id": "hole",
+          "type": "circle",
+          "center": [
+            15,
+            10
+          ],
+          "radius": 2
+        }
+      ],
+      "constraints": [
+        {
+          "id": "join_0",
+          "type": "coincident",
+          "refs": [
+            {
+              "entity": "bottom",
+              "point": "end"
+            },
+            {
+              "entity": "right",
+              "point": "start"
+            }
+          ]
+        },
+        {
+          "id": "join_1",
+          "type": "coincident",
+          "refs": [
+            {
+              "entity": "right",
+              "point": "end"
+            },
+            {
+              "entity": "top",
+              "point": "start"
+            }
+          ]
+        },
+        {
+          "id": "join_2",
+          "type": "coincident",
+          "refs": [
+            {
+              "entity": "top",
+              "point": "end"
+            },
+            {
+              "entity": "left",
+              "point": "start"
+            }
+          ]
+        },
+        {
+          "id": "join_3",
+          "type": "coincident",
+          "refs": [
+            {
+              "entity": "left",
+              "point": "end"
+            },
+            {
+              "entity": "bottom",
+              "point": "start"
+            }
+          ]
+        },
+        {
+          "id": "horizontal_bottom",
+          "type": "horizontal",
+          "refs": [
+            {
+              "entity": "bottom"
+            }
+          ]
+        },
+        {
+          "id": "horizontal_top",
+          "type": "horizontal",
+          "refs": [
+            {
+              "entity": "top"
+            }
+          ]
+        },
+        {
+          "id": "vertical_right",
+          "type": "vertical",
+          "refs": [
+            {
+              "entity": "right"
+            }
+          ]
+        },
+        {
+          "id": "vertical_left",
+          "type": "vertical",
+          "refs": [
+            {
+              "entity": "left"
+            }
+          ]
+        },
+        {
+          "id": "anchor",
+          "type": "coincident",
+          "refs": [
+            {
+              "entity": "bottom",
+              "point": "start"
+            },
+            {
+              "entity": "origin"
+            }
+          ]
+        },
+        {
+          "id": "width_dim",
+          "type": "distance",
+          "refs": [
+            {
+              "entity": "bottom"
+            }
+          ],
+          "value": "width"
+        },
+        {
+          "id": "height_dim",
+          "type": "distance",
+          "refs": [
+            {
+              "entity": "right"
+            }
+          ],
+          "value": "height"
+        },
+        {
+          "id": "hole_x",
+          "type": "distance_x",
+          "refs": [
+            {
+              "entity": "hole",
+              "point": "center"
+            }
+          ],
+          "value": "width/2"
+        },
+        {
+          "id": "hole_y",
+          "type": "distance_y",
+          "refs": [
+            {
+              "entity": "hole",
+              "point": "center"
+            }
+          ],
+          "value": "height/2"
+        },
+        {
+          "id": "hole_radius",
+          "type": "radius",
+          "refs": [
+            {
+              "entity": "hole"
+            }
+          ],
+          "value": "hole_radius"
+        }
+      ],
+      "require_fully_constrained": true
+    },
+    {
+      "id": "pad",
+      "op": "extrude_shape",
+      "target": "profile",
+      "vector": [
+        0,
+        0,
+        "depth"
+      ]
+    }
+  ],
+  "result": "pad"
+}

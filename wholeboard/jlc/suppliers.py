@@ -1,6 +1,6 @@
 """Prices from Mouser and DigiKey for the parts JLCPCB cannot fit: no LCSC number, missing, or short of stock.
 
-With API keys in Settings (Suppliers) WholeBoard asks Mouser's Search API and DigiKey's Product Information API
+With API keys in Settings (Suppliers) OpenFabro asks Mouser's Search API and DigiKey's Product Information API
 (v4) for stock and price breaks by manufacturer part number. Without keys it gives search links, so the parts can
 still be found by hand. Keys: Mouser from mouser.com/api-hub (Search API), DigiKey from developer.digikey.com
 (an app with the Product Information V4 API; client ID and secret).

@@ -19,7 +19,7 @@ ESP_CHIPS = {"ESP32-S3": "esp32s3", "ESP32-S2": "esp32s2", "ESP32-C3": "esp32c3"
 
 
 def find(cfg: dict | None = None) -> str | None:
-    """The pio program: Settings, PATH, WholeBoard's own Python, or PlatformIO's installer folder."""
+    """The pio program: Settings, PATH, OpenFabro's own Python, or PlatformIO's installer folder."""
     from . import config
     cfg = cfg or config.load()
     configured = (cfg.get("tools") or {}).get("platformio")
@@ -45,7 +45,7 @@ def version(exe: str) -> str | None:
 
 
 def install(log=print) -> str:
-    """pip-install PlatformIO into WholeBoard's own Python."""
+    """pip-install PlatformIO into OpenFabro's own Python."""
     log("Installing PlatformIO with pip (its compilers download on the first build)…")
     subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "platformio"], check=True)
     exe = find()
@@ -86,7 +86,7 @@ def build(fw_dir: Path, env: str, family: str, log=print, cancel: threading.Even
     exe = find()
     if not exe:
         return {"ok": False, "error": "PlatformIO is not installed. Install it from the firmware card or with: "
-                                      "python -m wholeboard.doctor --install platformio"}
+                                      "python -m openfabro.doctor --install platformio"}
     started = time.time()
     log(f"Compiling with PlatformIO ({env}); the first build of a chip family downloads its compiler.")
     proc = subprocess.Popen([exe, "run", "-d", str(fw_dir), "-e", env], stdout=subprocess.PIPE,

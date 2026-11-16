@@ -8,7 +8,7 @@
    before ordering.
 4. **Upload to JLCPCB.** On <https://cart.jlcpcb.com>, upload the Gerber zip from the revision's `fab/` folder,
    then the BOM and CPL for assembly. Choose impedance control if the quote reminds you to.
-5. **Confirm the price.** WholeBoard's board, assembly and shipping prices are estimates (see
+5. **Confirm the price.** OpenFabro's board, assembly and shipping prices are estimates (see
    [The quote](../reference/quote.md)); JLCPCB's cart is the real one.
 
 For parts JLCPCB cannot fit, the quote prices them at Mouser and DigiKey (add API keys in *Settings → JLCPCB*).

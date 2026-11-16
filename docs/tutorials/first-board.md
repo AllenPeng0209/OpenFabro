@@ -5,11 +5,11 @@ takes about fifteen minutes, most of it waiting for the router, and costs a few 
 
 ## Before you start
 
-- WholeBoard is installed and `python -m wholeboard.doctor` shows KiCad, TraceMaker and ngspice as found
+- OpenFabro is installed and `python -m openfabro.doctor` shows KiCad, TraceMaker and ngspice as found
   ([Install and check the tools](../how-to/install.md)).
 - An AI is set in *Settings → AI* (an Anthropic key, an OpenAI or xAI key, or a local server).
 
-## 1. Start WholeBoard and take the tour
+## 1. Start OpenFabro and take the tour
 
 Run `./run.sh` (`run.bat` on Windows). The browser opens at <http://127.0.0.1:8770/>.
 

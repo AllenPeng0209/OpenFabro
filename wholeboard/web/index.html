@@ -3,8 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WholeBoard</title>
-<link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<meta name="description" content="OpenFabro: the open-source AI hardware engineer for circuits, enclosures and complete devices.">
+<title>OpenFabro</title>
+<link rel="icon" href="/static/openfabro-mascot.png" type="image/png">
 <link rel="stylesheet" href="/static/style.css">
 <link rel="stylesheet" href="/static/themes.css">
 <script>try { const t = localStorage.getItem("wb-theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
@@ -16,7 +17,7 @@ window.wbZoom = () => parseFloat(document.documentElement.style.zoom) || 1;</scr
 <a class="skip-link" href="#stage">Skip to the build</a>
 <header class="topbar">
   <button class="btn ghost boards-toggle" id="boardsToggle" type="button" aria-label="Boards" aria-controls="sidebar" aria-expanded="false" title="Your boards">☰</button>
-  <a class="brand" href="#" id="homeLink"><img src="/static/icon.svg" alt=""><span>WholeBoard</span></a>
+  <a class="brand" href="#" id="homeLink"><img src="/static/openfabro-mascot.png" alt=""><span>OpenFabro</span></a>
   <div class="status-chips" id="statusChips"></div>
   <div class="spacer"></div>
   <div class="zoom-pick" role="group" aria-label="Zoom">
@@ -25,7 +26,7 @@ window.wbZoom = () => parseFloat(document.documentElement.style.zoom) || 1;</scr
     <button class="btn ghost" id="zoomIn" type="button" title="Zoom in (Ctrl+Alt++)" aria-label="Zoom in">+</button>
   </div>
   <button class="btn ghost" id="newBtn" type="button">+ New board</button>
-  <button class="btn ghost" id="tourBtn" type="button" title="A short walk through designing a board with WholeBoard">? Take a tour</button>
+  <button class="btn ghost" id="tourBtn" type="button" title="A short walk through designing a board with OpenFabro">? Take a tour</button>
   <button class="btn ghost" id="settingsBtn" type="button">⚙ Settings</button>
 </header>
 
@@ -41,10 +42,11 @@ window.wbZoom = () => parseFloat(document.documentElement.style.zoom) || 1;</scr
   <main>
     <section id="home" class="home">
       <div class="hero">
-        <h1>Describe a board. Get it designed, routed, quoted and boxed.</h1>
-        <p>WholeBoard works with your AI, KiCad, TraceMaker and FreeCAD to design a PCB from a plain
-          description. It asks you what it needs to know, prices the build at JLCPCB and designs a
-          3D-printable enclosure.</p>
+        <img class="hero-mascot" src="/static/openfabro-mascot.png" width="112" height="112" alt="Fabro, your friendly AI hardware engineer">
+        <h1>Describe a device. Design the whole product.</h1>
+        <p>OpenFabro is your open-source AI hardware engineer for circuits, enclosures and complete
+          devices. Bring electrical design, mechanical fit, starter firmware and manufacturing
+          preparation together with KiCad, TraceMaker, ngspice and FreeCAD.</p>
         <form id="promptForm" class="prompt">
           <textarea id="prompt" rows="5" data-resize="wb-prompt-h" placeholder="For example: A small USB-C powered board with an ESP32-C3, a BME280 sensor on I²C, two status LEDs and a 4-pin header for a fan. About 40 × 30 mm."></textarea>
           <div class="resize-grip" data-for="prompt" title="Drag to resize the description box (double-click to reset)"></div>
@@ -125,7 +127,7 @@ window.wbZoom = () => parseFloat(document.documentElement.style.zoom) || 1;</scr
         </select>
       </label>
       <div class="presets">
-        <button class="btn" type="button" id="findLocalBtn" title="Look for Ollama, LM Studio, llama.cpp, Strata, vLLM, Jan and other servers on the computer running WholeBoard">Search for local models</button>
+        <button class="btn" type="button" id="findLocalBtn" title="Look for Ollama, LM Studio, llama.cpp, Strata, vLLM, Jan and other servers on the computer running OpenFabro">Search for local models</button>
         <button class="btn" type="button" id="findLanBtn" title="Look for model servers on the other computers in this computer's subnet">Search the LAN</button>
         <span class="muted" id="findLocalOut"></span>
       </div>
@@ -155,7 +157,7 @@ window.wbZoom = () => parseFloat(document.documentElement.style.zoom) || 1;</scr
           <label>Price per million output tokens (US$) <input name="ai.openai_price_out" type="number" min="0" step="0.01"></label>
         </div>
         <label>Context window (tokens) <input name="ai.openai_context" type="number" min="0" step="1024" placeholder="0 asks the server"></label>
-        <p class="hint">When a conversation nears this, WholeBoard shortens its older steps so the model can carry on.
+        <p class="hint">When a conversation nears this, OpenFabro shortens its older steps so the model can carry on.
           Leave it at 0 to use what the server reports (llama.cpp, Strata, vLLM and LM Studio do).</p>
         <datalist id="openaiModels"></datalist>
         <p class="hint">The model must support tool calling. Larger models design better boards.</p>
@@ -171,7 +173,7 @@ window.wbZoom = () => parseFloat(document.documentElement.style.zoom) || 1;</scr
             <li>Open <b>Settings → API keys</b> and click <b>Create key</b>. Copy it straight away, because it is shown only once. It starts with <code>sk-ant-</code>.</li>
             <li>Here, choose <b>Claude (Anthropic cloud)</b> as the provider, paste the key and click <b>Save</b>, then <b>Test connection</b>.</li>
           </ol>
-          <p class="muted">Instead of pasting the key, you can set <code>ANTHROPIC_API_KEY</code> before starting WholeBoard. <a href="https://platform.claude.com/docs/en/get-api-key" target="_blank" rel="noopener">Anthropic's guide</a></p>
+          <p class="muted">Instead of pasting the key, you can set <code>ANTHROPIC_API_KEY</code> before starting OpenFabro. <a href="https://platform.claude.com/docs/en/get-api-key" target="_blank" rel="noopener">Anthropic's guide</a></p>
 
           <h4>OpenAI</h4>
           <ol>
@@ -180,7 +182,7 @@ window.wbZoom = () => parseFloat(document.documentElement.style.zoom) || 1;</scr
             <li>Here, choose <b>OpenAI-compatible</b> as the provider and click the <b>OpenAI</b> quick-setup button.</li>
             <li>Paste the key, click <b>Save</b>, then <b>List models</b> and pick a current GPT model. Click <b>Test connection</b>.</li>
           </ol>
-          <p class="muted">Instead of pasting the key, you can set <code>OPENAI_API_KEY</code> before starting WholeBoard.</p>
+          <p class="muted">Instead of pasting the key, you can set <code>OPENAI_API_KEY</code> before starting OpenFabro.</p>
 
           <h4>Grok (xAI)</h4>
           <ol>
@@ -189,13 +191,13 @@ window.wbZoom = () => parseFloat(document.documentElement.style.zoom) || 1;</scr
             <li>Here, choose <b>OpenAI-compatible</b> as the provider and click the <b>Grok (xAI)</b> quick-setup button.</li>
             <li>Paste the key, click <b>Save</b>, then <b>List models</b> and pick a Grok model. Click <b>Test connection</b>.</li>
           </ol>
-          <p class="muted">Instead of pasting the key, you can set <code>XAI_API_KEY</code> before starting WholeBoard. <a href="https://docs.x.ai/docs/tutorial" target="_blank" rel="noopener">xAI's guide</a></p>
+          <p class="muted">Instead of pasting the key, you can set <code>XAI_API_KEY</code> before starting OpenFabro. <a href="https://docs.x.ai/docs/tutorial" target="_blank" rel="noopener">xAI's guide</a></p>
 
           <h4>Keeping keys safe</h4>
           <ul>
-            <li>WholeBoard stores keys in <code>~/.wholeboard/config.json</code>, readable only by your user account. Saved keys are never sent back to the page.</li>
+            <li>OpenFabro stores keys in <code>~/.openfabro/config.json</code>, readable only by your user account. Saved keys are never sent back to the page.</li>
             <li>Every design run spends credit on your account. Set a monthly spending limit in the provider's console.</li>
-            <li>If you share WholeBoard on your network, everyone who opens it uses your key.</li>
+            <li>If you share OpenFabro on your network, everyone who opens it uses your key.</li>
             <li>If a key leaks, delete it in the provider's console and create a new one.</li>
           </ul>
         </div>
@@ -297,20 +299,20 @@ window.wbZoom = () => parseFloat(document.documentElement.style.zoom) || 1;</scr
           <option value="arctic">Arctic (light)</option>
         </select></label>
       <p class="hint">The theme and zoom are kept in this browser and change straight away.</p>
-      <label class="check"><input type="checkbox" id="notifyToggle"> Tell me when a board needs an answer or finishes, while WholeBoard is in the background</label>
+      <label class="check"><input type="checkbox" id="notifyToggle"> Tell me when a board needs an answer or finishes, while OpenFabro is in the background</label>
       <p class="hint" id="notifyHint">The tab's title and icon always change. This also shows a desktop notification.</p>
       <p class="hint">Keyboard shortcuts: press <kbd>?</kbd> anywhere to see them.</p>
     </div>
     <div class="tab" data-tab="github" hidden>
       <p class="hint">Used to publish boards to your GitHub. If the GitHub CLI is signed in on the computer running
-        WholeBoard (<code>gh auth login</code>), leave this empty and WholeBoard uses that.</p>
+        OpenFabro (<code>gh auth login</code>), leave this empty and OpenFabro uses that.</p>
       <p id="ghState" class="pins"></p>
       <label>Personal access token <input name="github.token" type="password" autocomplete="off" placeholder="github_pat_… or ghp_… (needs repository access)"></label>
       <p class="hint">A fine-grained token needs <i>Administration</i> and <i>Contents</i> read and write on all
         repositories (to create them). A classic token needs the <code>repo</code> scope.</p>
     </div>
     <div class="tab" data-tab="net" hidden>
-      <p class="hint">Start WholeBoard with <code>--host 0.0.0.0</code> to use it from other computers on your network.
+      <p class="hint">Start OpenFabro with <code>--host 0.0.0.0</code> to use it from other computers on your network.
         A password stops anyone else on the network from using it (and your AI key). This computer never needs it.</p>
       <p id="netState" class="pins"></p>
       <label>New password <input type="password" id="netPassword" autocomplete="new-password" placeholder="at least 6 characters"></label>
@@ -417,7 +419,7 @@ window.wbZoom = () => parseFloat(document.documentElement.style.zoom) || 1;</scr
 <dialog id="claudeDialog" class="modal" aria-labelledby="claudeTitle">
   <form method="dialog">
     <h2 id="claudeTitle">Design with Claude Code</h2>
-    <p class="hint">Claude Code can design boards with WholeBoard's tools, on your Claude plan, with no API key. It builds
+    <p class="hint">Claude Code can design boards with OpenFabro's tools, on your Claude plan, with no API key. It builds
       each board here, so you watch every step on this page.</p>
     <ol class="cc-steps" id="ccSteps"></ol>
     <div class="modal-actions"><button class="btn primary" value="cancel" type="submit">Close</button></div>

@@ -14,6 +14,28 @@ def spec(components, nets, simulation=None):
     return s
 
 
+@pytest.mark.parametrize("payload", [
+    ".control\nshell echo must-not-run\n.endc",
+    '.include "/tmp/not-a-project-model.lib"',
+    '.lib "/tmp/not-a-project-model.lib" default',
+    'Rbad a 0 `echo must-not-run`',
+    '.model external d_source(input_file="/tmp/not-a-project-model.txt")',
+    '*# shell echo must-not-run',
+    '.model external d_cosim(simulation="must-not-run")\nAEXTERNAL a b external',
+])
+def test_custom_spice_cannot_launch_control_commands_or_read_host_files(tmp_path, monkeypatch, payload):
+    circuit = spec([comp("R1", "1k", sim={"spice": "R{ref} {1} {2} 1k\n" + payload})],
+                   [{"name": "VIN", "pins": ["R1.1"]}, {"name": "GND", "pins": ["R1.2"]}],
+                   {"sources": [{"net": "VIN", "volts": 5}]})
+    invoked = []
+    monkeypatch.setattr(ngspice, "run", lambda *a, **kw: invoked.append(a) or "")
+    result = sim.simulate(circuit, tmp_path, engine={"kind": "exe", "path": "ngspice"})
+    assert not invoked, "Untrusted control text reached the host ngspice process"
+    assert result["ran"] is False
+    assert not result["ok"]
+    assert not (tmp_path / "circuit.cir").exists()
+
+
 def test_values_and_names():
     assert sim.parse_value("4k7") == pytest.approx(4700)
     assert sim.parse_value("100nF") == pytest.approx(1e-7)
@@ -57,6 +79,17 @@ def test_netlist_guesses_supply():
 
 engine = ngspice.find()
 needs_spice = pytest.mark.skipif(engine is None, reason="ngspice not available")
+
+
+@needs_spice
+def test_inline_custom_subcircuit_preserves_its_body_order_and_parameter_expressions(tmp_path):
+    model = "X{ref} {1} {2} LOAD\n.subckt LOAD a b\n.param RLOAD=1k\nRINNER a b {RLOAD}\n.ends LOAD"
+    circuit = spec([comp("U1", "Inline load", sim={"spice": model})],
+                   [{"name": "VIN", "pins": ["U1.1"]}, {"name": "GND", "pins": ["U1.2"]}],
+                   {"sources": [{"net": "VIN", "volts": 5}]})
+    result = sim.simulate(circuit, tmp_path, engine=engine)
+    assert result["ran"], result["problems"]
+    assert result["ok"], result["problems"]
 
 
 @needs_spice

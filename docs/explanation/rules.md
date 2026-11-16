@@ -1,6 +1,6 @@
 # How rules reach the router and DRC
 
-A rule that only the DRC knows about is found after routing, and the board has to be routed again. So WholeBoard
+A rule that only the DRC knows about is found after routing, and the board has to be routed again. So OpenFabro
 writes every rule once, into KiCad's own files, and every tool reads them from there.
 
 ```mermaid
@@ -32,8 +32,8 @@ So both files are copied next to every intermediate board TraceMaker works on, n
 ## Where KiCad falls short
 
 - **Creepage.** KiCad 10's DRC understands `(constraint creepage …)`, but the zone filler does not: a ground pour
-  fills right up to the clearance and then fails creepage. So for surface copper WholeBoard also writes a clearance
+  fills right up to the clearance and then fails creepage. So for surface copper OpenFabro also writes a clearance
   rule equal to the creepage distance ([decision 3](../decisions/0003-surface-rule-for-creepage.md)), and measures
   creepage itself after DRC.
-- **Interface limits.** Length matching, skew between pairs and stubs are checked by WholeBoard after routing
+- **Interface limits.** Length matching, skew between pairs and stubs are checked by OpenFabro after routing
   (`impedance.check`), not by KiCad.

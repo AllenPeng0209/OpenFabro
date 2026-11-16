@@ -814,7 +814,7 @@ async function slTour(lab, opts = {}) {
   const hot = Object.entries(dyn0.state).filter(([, s]) => s.power_mw).sort((a, b) => b[1].power_mw - a[1].power_mw);
   steps.push(async () => {
     lab.show = { flow: false, heat: false, glow: true, labels: false };
-    lab.caption = { kicker: "WholeBoard Sim Lab", title: sc.name || "Your board", text: `The ngspice simulation of this board, drawn on the routed layout: ${sc.parts.length} parts on a ${sc.board.w.toFixed(0)} × ${sc.board.h.toFixed(0)} mm, ${sc.board.layers}-layer board.` };
+    lab.caption = { kicker: "OpenFabro Sim Lab", title: sc.name || "Your board", text: `The ngspice simulation of this board, drawn on the routed layout: ${sc.parts.length} parts on a ${sc.board.w.toFixed(0)} × ${sc.board.h.toFixed(0)} mm, ${sc.board.layers}-layer board.` };
     await lab.home(1200); await lab.orbit(3200, 0.7);
   });
   steps.push(async () => {

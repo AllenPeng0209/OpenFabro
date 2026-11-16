@@ -1,0 +1,208 @@
+{
+  "recorded_at": "2026-11-11",
+  "description": "Public supplier response and WholeBoard fee table for the bundled USB-C sample. Rendering fixture, not current prices or an official manufacturer quote.",
+  "quote": {
+    "currency": "USD",
+    "quantity": 5,
+    "board": {
+      "width_mm": 30.0,
+      "height_mm": 22.0,
+      "layers": 2
+    },
+    "pcb": {
+      "lines": [
+        {
+          "item": "PCB, 2 layers, 30\u00d722 mm, qty 5",
+          "amount": 2.0,
+          "note": "prototype price for boards up to 100\u00d7100 mm"
+        }
+      ],
+      "subtotal": 2.0
+    },
+    "assembly": {
+      "boards": 2,
+      "type": "economic",
+      "lines": [
+        {
+          "item": "Assembly setup (economic)",
+          "amount": 8.0,
+          "note": ""
+        },
+        {
+          "item": "Stencil",
+          "amount": 1.5,
+          "note": ""
+        },
+        {
+          "item": "SMT joints: 22 per board \u00d7 2 boards",
+          "amount": 0.07,
+          "note": ""
+        },
+        {
+          "item": "Extended part feeder loading: 2 part types",
+          "amount": 6.0,
+          "note": ""
+        },
+        {
+          "item": "Through-hole hand soldering: 8 joints \u00d7 2 boards",
+          "amount": 3.78,
+          "note": ""
+        }
+      ],
+      "bottom_parts": [],
+      "subtotal": 19.35
+    },
+    "components": {
+      "lines": [
+        {
+          "refs": [
+            "J1"
+          ],
+          "value": "USB_C_Power",
+          "lcsc": "C2988369",
+          "footprint": "USB_C_Receptacle_GCT_USB4125-xx-x-0190_6P_TopMnt_Horizontal",
+          "per_board": 1,
+          "mpn": "GT-USB-7010ASV",
+          "library_type": "extended",
+          "stock": 65775,
+          "order_qty": 2,
+          "unit": 0.0882,
+          "total": 0.1764,
+          "status": "ok"
+        },
+        {
+          "refs": [
+            "R1",
+            "R2"
+          ],
+          "value": "5.1k",
+          "lcsc": "C23186",
+          "footprint": "R_0603_1608Metric",
+          "per_board": 2,
+          "mpn": "0603WAF5101T5E",
+          "library_type": "basic",
+          "stock": 19851078,
+          "order_qty": 20,
+          "unit": 0.0015,
+          "total": 0.03,
+          "status": "ok"
+        },
+        {
+          "refs": [
+            "U1"
+          ],
+          "value": "AMS1117-3.3",
+          "lcsc": "C6186",
+          "footprint": "SOT-223-3_TabPin2",
+          "per_board": 1,
+          "mpn": "AMS1117-3.3",
+          "library_type": "basic",
+          "stock": 1510015,
+          "order_qty": 2,
+          "unit": 0.1938,
+          "total": 0.3876,
+          "status": "ok"
+        },
+        {
+          "refs": [
+            "C1"
+          ],
+          "value": "10uF",
+          "lcsc": "C15850",
+          "footprint": "C_0805_2012Metric",
+          "per_board": 1,
+          "mpn": "CL21A106KAYNNNE",
+          "library_type": "basic",
+          "stock": 8321373,
+          "order_qty": 20,
+          "unit": 0.0314,
+          "total": 0.628,
+          "status": "ok"
+        },
+        {
+          "refs": [
+            "C2"
+          ],
+          "value": "22uF",
+          "lcsc": "C45783",
+          "footprint": "C_0805_2012Metric",
+          "per_board": 1,
+          "mpn": "CL21A226MAQNNNE",
+          "library_type": "basic",
+          "stock": 3791751,
+          "order_qty": 5,
+          "unit": 0.1055,
+          "total": 0.5275,
+          "status": "ok"
+        },
+        {
+          "refs": [
+            "R3"
+          ],
+          "value": "1k",
+          "lcsc": "C21190",
+          "footprint": "R_0603_1608Metric",
+          "per_board": 1,
+          "mpn": "0603WAF1001T5E",
+          "library_type": "basic",
+          "stock": 26412937,
+          "order_qty": 20,
+          "unit": 0.0017,
+          "total": 0.034,
+          "status": "ok"
+        },
+        {
+          "refs": [
+            "D1"
+          ],
+          "value": "Red",
+          "lcsc": "C2286",
+          "footprint": "LED_0603_1608Metric",
+          "per_board": 1,
+          "mpn": "KT-0603R",
+          "library_type": "basic",
+          "stock": 6140513,
+          "order_qty": 20,
+          "unit": 0.0077,
+          "total": 0.154,
+          "status": "ok"
+        },
+        {
+          "refs": [
+            "J2"
+          ],
+          "value": "Header 1x4",
+          "lcsc": "C124378",
+          "footprint": "PinHeader_1x04_P2.54mm_Vertical",
+          "per_board": 1,
+          "mpn": "B-2100S04P-A110",
+          "library_type": "extended",
+          "stock": 98950,
+          "order_qty": 2,
+          "unit": 0.0524,
+          "total": 0.1048,
+          "status": "ok"
+        }
+      ],
+      "subtotal": 2.04
+    },
+    "shipping": {
+      "lines": [
+        {
+          "item": "Global Standard Direct to AU, about 0.07 kg, 8-15 days",
+          "amount": 2.5,
+          "note": ""
+        }
+      ],
+      "subtotal": 2.5
+    },
+    "total": 25.89,
+    "per_board": 12.95,
+    "assumptions": [
+      "Fab and assembly fees come from WholeBoard's JLCPCB price table (checked 2026-10-20). JLCPCB has no public quote API, so confirm the final price on cart.jlcpcb.com.",
+      "Component prices, stock and basic/extended status are live from JLCPCB's parts library.",
+      "Vias in pads: 1 (U1.1): Vias in pads must be epoxy-filled and capped (POFV). JLCPCB includes it on 6-layer boards and charges for it on 4-layer boards; it is not offered on 1- and 2-layer boards.",
+      "JLCPCB adds attrition (spare parts) for small passives, which can raise component cost slightly."
+    ]
+  }
+}

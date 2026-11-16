@@ -1,0 +1,66 @@
+async (page, options = {}) =>{
+  const origin=options.origin||'http://127.0.0.1:8771',previous=page.url();
+  const created=await page.request.post(origin+'/api/workbench/projects',{data:{title:'Collaboration browser acceptance',example:true}}),project=await created.json();
+  if(!created.ok())throw new Error('Could not create the isolated QA project');
+  const username='reviewer'+Date.now(),password=crypto.randomUUID();
+  const contexts=[],checks=[],errors=[];
+  page.on('pageerror',error=>errors.push(error.message));
+  try{
+    await page.setViewportSize({width:1440,height:1000});await page.goto(origin+'/#'+project.id);await page.waitForSelector('.native-symbol-graphics');
+    await page.locator('#settingsButton').click();await page.locator('#workspaceAccountsButton').click();
+    await page.locator('#accountUsername').fill(username);await page.locator('#accountDisplayName').fill('Design reviewer');await page.locator('#accountPassword').fill(password);
+    await page.locator('#createAccountForm button[type=submit]').click();
+    await page.getByText(username,{exact:true}).waitFor();
+    const users=await(await page.request.get(origin+'/api/workbench/accounts')).json(),user=users.accounts.find(u=>u.username===username);
+    await page.getByRole('button',{name:'Close workspace accounts',exact:true}).click();
+    await page.locator('#shareButton').click();await page.locator('#memberAccount').selectOption(user.id);await page.locator('#memberRole').selectOption('commenter');await page.locator('#addMemberForm button[type=submit]').click();
+    await page.locator(`[data-member-role="${user.id}"]`).waitFor();await page.getByRole('button',{name:'Close share',exact:true}).click();
+    checks.push('Workspace account creation and project membership work through the UI');
+    await page.locator('.canvas-component[data-ref="R1"]').click();await page.locator('#commentsButton').click();
+    await page.locator('#newCommentText').fill('Please check this resistor rating.');await page.locator('#newCommentForm button[type=submit]').click();
+    await page.locator('.review-thread').first().waitFor();await page.locator('.review-pin').first().waitFor();
+    checks.push('A review thread is saved on the selected native schematic symbol');
+    const browser=page.context().browser(),visitorContext=await browser.newContext({viewport:{width:1440,height:1000}});contexts.push(visitorContext);
+    const visitor=await visitorContext.newPage();visitor.on('pageerror',error=>errors.push(error.message));
+    await visitor.goto(origin);await visitor.locator('#settingsButton').click();await visitor.locator('#workspaceAccountsButton').click();await visitor.locator('#workspaceSignIn').click();
+    await visitor.locator('#loginUsername').fill(username);await visitor.locator('#loginPassword').fill(password);await visitor.locator('#workspaceLoginForm button[type=submit]').click();
+    await visitor.waitForLoadState('domcontentloaded');await visitor.waitForFunction(()=>!document.querySelector('#workspaceLoginDialog').open);
+    await visitor.goto(origin+'/#'+project.id);await visitor.waitForSelector('.native-symbol-graphics');
+    if(!await visitor.locator('#chatInput').isDisabled())throw new Error('Commenter can send AI instructions');
+    await visitor.locator('.canvas-component[data-ref="R1"]').click();if(!await visitor.locator('[data-property="value"]').isDisabled())throw new Error('Commenter can edit a component');
+    await visitor.locator('.canvas-component[data-ref="R1"]').hover();
+    await page.locator('#liveAvatars:not([hidden])').waitFor();await page.locator('.live-cursors [data-live-user]').first().waitFor();
+    checks.push('Authenticated participants, remote cursors and selection appear in the other editor');
+    await visitor.locator('#commentsButton').click();await visitor.locator('[data-reply-thread]').first().click();await visitor.locator('[data-reply-form] textarea').fill('Rating checked against the selected part.');await visitor.locator('[data-reply-form] button[type=submit]').click();
+    await page.getByText('Rating checked against the selected part.',{exact:true}).waitFor();
+    await page.screenshot({path:(options.artifactDir||'test-results')+'/collaboration-comments.png'});
+    checks.push('A signed-in commenter can reply live while design and AI editing remain disabled');
+    await page.locator('#shareButton').click();await page.locator(`[data-member-role="${user.id}"]`).selectOption('viewer');
+    await visitor.locator('#newCommentText').waitFor({state:'detached'});
+    await page.locator(`[data-member-role="${user.id}"]`).selectOption('editor');
+    await visitor.waitForFunction(()=>!document.querySelector('#chatInput').disabled);
+    await page.getByRole('button',{name:'Close share',exact:true}).click();
+    await visitor.locator('#closeDrawer').click();await visitor.locator('.canvas-component[data-ref="R1"]').click();
+    const save=visitor.waitForResponse(r=>r.url().endsWith('/design')&&r.request().method()==='PUT'&&r.ok());
+    await visitor.locator('[data-property="value"]').fill('6.8k');await visitor.locator('[data-property="value"]').press('Tab');await save;
+    await page.waitForFunction(()=>document.querySelector('[data-property="value"]')?.value==='6.8k');
+    checks.push('Role changes take effect live and saved edits appear in the other browser');
+    await page.locator('#shareButton').click();await page.locator('#shareLabel').fill('Viewer acceptance');await page.locator('#createShareForm button[type=submit]').click();
+    await page.waitForFunction(()=>document.querySelector('#shareUrl').value.includes('#share='));const link=await page.locator('#shareUrl').inputValue();
+    const guestContext=await browser.newContext({viewport:{width:1440,height:1000}});contexts.push(guestContext);const guest=await guestContext.newPage();guest.on('pageerror',error=>errors.push(error.message));
+    await guest.goto(link);await guest.waitForSelector('.native-symbol-graphics');
+    if(guest.url().includes('#share='))throw new Error('Access secret was left in the browser address');
+    if(!await guest.locator('#chatInput').isDisabled())throw new Error('Viewer link enabled AI editing');
+    const list=await(await guest.request.get(origin+'/api/projects')).json();if(list.length!==1||list[0].id!==project.id)throw new Error('A shared link exposed other projects');
+    checks.push('A viewer link opens only its project and exchanges the URL secret for an HttpOnly session');
+    const links=await(await page.request.get(`${origin}/api/workbench/projects/${project.id}/shares`)).json(),grant=links.shares.find(s=>s.label==='Viewer acceptance');
+    await page.locator(`[data-revoke-share="${grant.id}"]`).click();await guest.locator('#workspaceLoginError').filter({hasText:'revoked'}).waitFor();
+    if((await guest.request.get(`${origin}/api/projects/${project.id}`)).status()!==401)throw new Error('Revoked viewer still has project access');
+    checks.push('Revoking a link closes the existing live stream and ends project access');
+    if(errors.length)throw new Error(errors.join('\n'));
+    return{checks,browserExceptions:errors};
+  }finally{
+    for(const context of contexts)await context.close();
+    await page.goto(previous);await page.request.delete(`${origin}/api/projects/${project.id}`);
+  }
+}

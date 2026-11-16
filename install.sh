@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# WholeBoard installer for Linux and macOS.
+# OpenFabro installer for Linux and macOS.
 #
-# Installs everything WholeBoard needs:
+# Installs everything OpenFabro needs:
 #   - Python 3.10+, git and curl                        (system package manager / Homebrew)
 #   - KiCad 10 (or the newest your system offers, 9+)   (system package manager / Homebrew)
-#   - WholeBoard's Python packages                      (into .venv in this folder)
+#   - OpenFabro's Python packages                      (into .venv in this folder)
 #   - TraceMaker, the autorouter                        (release download, or built from source)
 #   - FreeCAD, for enclosures                           (official AppImage / Homebrew)
 #   - ngspice, for circuit simulation                   (system package manager / Homebrew)
 #   - KiCad's footprint and symbol libraries if KiCad did not bring them
-# and adds a `wholeboard` command (and a menu entry on Linux).
+# and adds an `openfabro` command (and a menu entry on Linux).
 #
 # Usage: ./install.sh [--yes] [--no-system]
 #   --yes        do not ask before installing system packages
@@ -40,7 +40,7 @@ if [ "$(id -u)" -ne 0 ]; then SUDO="sudo"; fi
 
 OS="$(uname -s)"
 ARCH="$(uname -m)"
-say "Installing WholeBoard on $OS ($ARCH)"
+say "Installing OpenFabro on $OS ($ARCH)"
 
 kicad_ok() {
   have kicad-cli && kicad-cli version 2>/dev/null | grep -Eq '^(9|1[0-9])\.' && return 0
@@ -116,13 +116,13 @@ if [ "$SYSTEM" = 1 ]; then
     say "Your distribution's KiCad is missing or older than 9; installing KiCad from Flathub"
     if ask "Install org.kicad.KiCad with Flatpak?"; then
       flatpak install -y --user flathub org.kicad.KiCad
-      mkdir -p "$HOME/.wholeboard/bin"
-      cat > "$HOME/.wholeboard/bin/kicad-cli" <<'EOF'
+      mkdir -p "$HOME/.openfabro/bin"
+      cat > "$HOME/.openfabro/bin/kicad-cli" <<'EOF'
 #!/bin/sh
 exec flatpak run --filesystem=home --command=kicad-cli org.kicad.KiCad "$@"
 EOF
-      chmod +x "$HOME/.wholeboard/bin/kicad-cli"
-      KICAD_WRAPPER="$HOME/.wholeboard/bin/kicad-cli"
+      chmod +x "$HOME/.openfabro/bin/kicad-cli"
+      KICAD_WRAPPER="$HOME/.openfabro/bin/kicad-cli"
     fi
   fi
 fi
@@ -133,7 +133,7 @@ for c in python3.13 python3.12 python3.11 python3.10 python3; do
   if have "$c" && "$c" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)' 2>/dev/null; then PY="$c"; break; fi
 done
 if [ -z "$PY" ]; then echo "Python 3.10 or newer is required."; exit 1; fi
-say "Setting up WholeBoard's Python environment with $($PY --version)"
+say "Setting up OpenFabro's Python environment with $($PY --version)"
 [ -x .venv/bin/python ] || "$PY" -m venv .venv
 .venv/bin/python -m pip install --upgrade pip >/dev/null
 .venv/bin/python -m pip install -e .
@@ -149,31 +149,31 @@ fi
 
 # ------------------------------------------------------------------ TraceMaker, FreeCAD, libraries
 say "Installing TraceMaker, FreeCAD, ngspice and KiCad libraries where they are missing"
-.venv/bin/python -m wholeboard.doctor --install || true
+.venv/bin/python -m openfabro.doctor --install || true
 
 # ------------------------------------------------------------------ launcher
 mkdir -p "$HOME/.local/bin"
-cat > "$HOME/.local/bin/wholeboard" <<EOF
+cat > "$HOME/.local/bin/openfabro" <<EOF
 #!/bin/sh
 exec "$HERE/run.sh" "\$@"
 EOF
-chmod +x "$HOME/.local/bin/wholeboard"
+chmod +x "$HOME/.local/bin/openfabro"
 if [ "$OS" = "Linux" ]; then
   mkdir -p "$HOME/.local/share/applications"
-  cat > "$HOME/.local/share/applications/wholeboard.desktop" <<EOF
+  cat > "$HOME/.local/share/applications/openfabro.desktop" <<EOF
 [Desktop Entry]
 Type=Application
-Name=WholeBoard
-Comment=Describe a PCB and get it designed, routed, quoted and boxed
+Name=OpenFabro
+Comment=The open-source AI hardware engineer for circuits, enclosures and complete devices
 Exec=$HERE/run.sh
-Icon=$HERE/wholeboard/web/icon.svg
+Icon=$HERE/wholeboard/web/openfabro-mascot.png
 Terminal=true
 Categories=Development;Electronics;
 EOF
 fi
-case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) warn "Add ~/.local/bin to your PATH to use the 'wholeboard' command." ;; esac
+case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) warn "Add ~/.local/bin to your PATH to use the 'openfabro' command." ;; esac
 
 say "Done"
-echo "Start WholeBoard with:  wholeboard     (or $HERE/run.sh)"
-echo "To use it from another computer on your network:  wholeboard --host 0.0.0.0"
-echo "Then open Settings in WholeBoard to choose your AI (Claude, OpenAI, Grok or a local model)."
+echo "Start OpenFabro with:  openfabro     (or $HERE/run.sh)"
+echo "To use it from another computer on your network:  openfabro --host 0.0.0.0"
+echo "Then open Settings in OpenFabro to choose your AI (Claude, OpenAI, Grok or a local model)."

@@ -5,9 +5,9 @@ rounded or odd outlines (a 2 mm milled gap, 3 mm tabs perforated with 0.5 mm hol
 carry three 1.152 mm tooling holes (JLCPCB's size) and three fiducials (1 mm copper, 2 mm mask opening) for the
 assembly machine. Each copy's parts are renamed R1_0, R1_1 ... so the panel's CPL and BOM name every part once.
 
-KiKit (MIT licence) runs on KiCad's own Python. WholeBoard uses a `kikit` command on the PATH, or, when kicad-cli
+KiKit (MIT licence) runs on KiCad's own Python. OpenFabro uses a `kikit` command on the PATH, or, when kicad-cli
 is the Docker image, KiKit's packages in ~/.wholeboard/kikit-py run inside that image
-(python -m wholeboard.doctor --install kikit puts them there).
+(python -m openfabro.doctor --install kikit puts them there).
 """
 
 from __future__ import annotations
@@ -18,7 +18,9 @@ import shutil
 import subprocess
 from pathlib import Path
 
-PY_DIR = Path.home() / ".wholeboard" / "kikit-py"
+from .. import config
+
+PY_DIR = config.APP_DIR / "kikit-py"
 IMAGE = os.environ.get("TRACEMAKER_KICAD_IMAGE", "kicad/kicad:10.0.6")
 RAIL_MM = 5.0
 GAP_MM = 2.0
@@ -50,7 +52,7 @@ def available() -> bool:
 
 
 def install(log=print) -> bool:
-    """Install KiKit where WholeBoard can run it."""
+    """Install KiKit where OpenFabro can run it."""
     cli = shutil.which("kicad-cli") or ""
     docker = cli and "docker" in Path(cli).read_text(errors="ignore")[:2000] if cli and Path(cli).is_file() else False
     if docker:
@@ -101,7 +103,7 @@ def make(pcb: Path, out: Path, nx: int, ny: int, vcut: bool, log=print, **kw) ->
     """Draw the panel: out is the panel's .kicad_pcb."""
     cmd = command()
     if not cmd:
-        raise PanelError("KiKit is not installed: run python -m wholeboard.doctor --install kikit")
+        raise PanelError("KiKit is not installed: run python -m openfabro.doctor --install kikit")
     out.parent.mkdir(parents=True, exist_ok=True)
     full = [*cmd, "panelize", *args(nx, ny, vcut, **kw), str(pcb), str(out)]
     r = subprocess.run(full, capture_output=True, text=True, timeout=900, cwd=pcb.parent)

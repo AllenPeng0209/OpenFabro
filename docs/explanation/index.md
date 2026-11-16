@@ -1,6 +1,6 @@
 # Explanation
 
-Background: why WholeBoard works the way it does.
+Background: why OpenFabro works the way it does.
 
 - [How a build works](pipeline.md): the steps, what stops a build and how the AI fixes it.
 - [How rules reach the router and DRC](rules.md): one set of rules, written once, used by every tool.

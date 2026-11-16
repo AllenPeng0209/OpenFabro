@@ -9,7 +9,7 @@ import re
 import uuid
 from pathlib import Path
 
-from .. import design, impedance, mains, sexpr
+from .. import __version__, design, impedance, mains, sexpr
 from ..sexpr import S, Sym, find, fmt, num, tag
 from . import dru, libs, schematic
 
@@ -29,8 +29,31 @@ _USER_LAYERS = [
 ]
 
 
-def uid() -> str:
-    return str(uuid.uuid4())
+def uid(seed=None) -> str:
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, 'openfabro:'+seed) if seed is not None else uuid.uuid4())
+
+
+def _source_key(node):
+    clean=copy.deepcopy(node)
+    for item in sexpr.walk(clean):
+        item[:]=[child for child in item if tag(child) not in {'uuid','tstamp','net'}]
+    return sexpr.dumps(clean)
+
+
+def _stable_children(items, scope):
+    """Library exports can regenerate UUIDs; use their intrinsic source records instead."""
+    seen={}
+    editable={'pad','property','fp_text','fp_line','fp_rect','fp_poly','fp_circle','fp_arc','fp_curve','zone','gr_line','gr_arc','gr_rect','gr_circle'}
+    for child in items:
+        if not isinstance(child,list) or tag(child) in {'uuid','tstamp'}:
+            continue
+        key=_source_key(child);index=seen.get(key,0);seen[key]=index+1
+        identifiers=[node for node in sexpr.walk(child) if tag(node)=='uuid' and len(node)>1]
+        if not identifiers and tag(child) in editable:
+            field=[Sym('uuid'),''];child.append(field);identifiers=[field]
+        for nested,field in enumerate(identifiers):
+            field[1]=uid(f'{scope}:{key}:{index}:{nested}')
+    return items
 
 
 def copper_layers(n: int) -> list[str]:
@@ -38,12 +61,14 @@ def copper_layers(n: int) -> list[str]:
     return ["F.Cu", *inner, "B.Cu"] if n > 1 else ["F.Cu"]
 
 
-def _layers_node(n: int) -> list:
-    node = [Sym("layers"), S(0, "F.Cu", Sym("signal"))]
+def _layers_node(n: int, physical: dict | None = None) -> list:
+    rows=[r for r in (physical or {}).get('layers',[]) if r['type']=='copper']
+    names=copper_layers(len(rows));roles={name:('power' if row.get('role')=='plane' else row.get('role','signal')) for name,row in zip(names,rows)}
+    node = [Sym("layers"), S(0, "F.Cu", Sym(roles.get('F.Cu','signal')))]
     for i in range(1, max(0, n - 2) + 1):
-        node.append(S(2 + 2 * i, f"In{i}.Cu", Sym("signal")))
+        node.append(S(2 + 2 * i, f"In{i}.Cu", Sym(roles.get(f'In{i}.Cu','signal'))))
     if n > 1:
-        node.append(S(2, "B.Cu", Sym("signal")))
+        node.append(S(2, "B.Cu", Sym(roles.get('B.Cu','signal'))))
     for num_, name, kind, alias in _USER_LAYERS:
         item = S(num_, name, Sym(kind))
         if alias:
@@ -77,7 +102,7 @@ def outline(w: float, h: float, r: float) -> list[list]:
     if r <= 0:
         line((x0, y0), (x1, y0)); line((x1, y0), (x1, y1))
         line((x1, y1), (x0, y1)); line((x0, y1), (x0, y0))
-        return items
+        return _stable_children(items, 'board-outline')
     k = r * (1 - math.sqrt(0.5))
     line((x0 + r, y0), (x1 - r, y0))
     arc((x1 - r, y0), (x1 - k, y0 + k), (x1, y0 + r))
@@ -87,15 +112,15 @@ def outline(w: float, h: float, r: float) -> list[list]:
     arc((x0 + r, y1), (x0 + k, y1 - k), (x0, y1 - r))
     line((x0, y1 - r), (x0, y0 + r))
     arc((x0, y0 + r), (x0 + k, y0 + k), (x0 + r, y0))
-    return items
+    return _stable_children(items, 'board-outline')
 
 
 def polygon_outline(points: list) -> list[list]:
     """A board outline from a polygon (mm from the board's top-left)."""
     x0, y0 = ORIGIN
     pts = [(x0 + float(p[0]), y0 + float(p[1])) for p in points]
-    return [[Sym("gr_line"), S(Sym("start"), *a), S(Sym("end"), *b), _stroke(), S(Sym("layer"), "Edge.Cuts"),
-             [Sym("uuid"), uid()]] for a, b in zip(pts, pts[1:] + pts[:1])]
+    return _stable_children([[Sym("gr_line"), S(Sym("start"), *a), S(Sym("end"), *b), _stroke(), S(Sym("layer"), "Edge.Cuts"),
+             [Sym("uuid"), uid()]] for a, b in zip(pts, pts[1:] + pts[:1])], 'board-outline')
 
 
 def zone(net: str, layer: str, w: float, h: float, inset: float, clearance: float,
@@ -105,7 +130,7 @@ def zone(net: str, layer: str, w: float, h: float, inset: float, clearance: floa
            (x0 + w - inset, y0 + h - inset), (x0 + inset, y0 + h - inset)]
     return [
         Sym("zone"), S(Sym("net"), net), S(Sym("net_name"), net), S(Sym("layer"), layer),
-        [Sym("uuid"), uid()], S(Sym("name"), f"{net}_{layer.replace('.', '_')}"),
+        [Sym("uuid"), uid(f'generated-zone:{net}:{layer}')], S(Sym("name"), f"{net}_{layer.replace('.', '_')}"),
         S(Sym("hatch"), Sym("edge"), 0.5), S(Sym("priority"), priority),
         # solid joints to SMD pads, thermal reliefs on through-hole pads (hand soldering)
         S(Sym("connect_pads"), Sym("thru_hole_only"), S(Sym("clearance"), clearance)),
@@ -199,6 +224,12 @@ def _flip_child(child: list) -> None:
             qt = tag(q)
             if qt == "layers":
                 _mirror([q])
+            elif qt == "padstack":
+                for layer in find_all(q,'layer'):
+                    layer[1]=_flip_layer(str(layer[1]));offset=find(layer,'offset')
+                    if offset and len(offset)>2:offset[2]=fmt(-num(offset[2]))
+            elif qt == "zone_layer_connections":
+                _mirror([q])
             elif qt == "rect_delta" and len(q) >= 3:
                 q[2] = fmt(-num(q[2]))
             elif qt == "chamfer":
@@ -250,23 +281,24 @@ def _min_drill(pad: list) -> None:
 def footprint_instance(fp: libs.Footprint, ref: str, value: str, x: float, y: float,
                        rot: float = 0.0, locked: bool = False, pad_nets: dict | None = None,
                        extra_props: dict | None = None, sheet_link: tuple[str, str, str] | None = None,
-                       bottom: bool = False) -> list:
+                       bottom: bool = False, pad_overrides: dict | None = None) -> list:
     """A board footprint built from a library footprint, on the top side or flipped onto the bottom."""
     pad_nets = pad_nets or {}
     src = copy.deepcopy(fp.node)
     out: list = [Sym("footprint"), fp.lib_id]
     if locked:
         out.append(S(Sym("locked"), Sym("yes")))
-    out += [S(Sym("layer"), "B.Cu" if bottom else "F.Cu"), [Sym("uuid"), uid()], S(Sym("at"), x, y, *([rot] if rot else []))]
+    out += [S(Sym("layer"), "B.Cu" if bottom else "F.Cu"), [Sym("uuid"), uid(f'footprint:{ref}:{fp.lib_id}')], S(Sym("at"), x, y, *([rot] if rot else []))]
     skip = {"version", "generator", "generator_version", "layer", "uuid", "at", "locked", "placed"}
     have_props = set()
-    for child in src[2:]:
+    children=_stable_children(src[2:], f'footprint:{ref}:{fp.lib_id}');overridden=set()
+    if pad_overrides:
+        from .. import pad_edits
+        overridden={str(find(item,'uuid')[1]) for key,item in pad_edits.entries(children) if key in pad_overrides};children=pad_edits.resolve_children(children,pad_overrides,fp.lib_id)
+    for child in children:
         t = tag(child)
         if t in skip or t is None:
             continue
-        for n in sexpr.walk(child):
-            if tag(n) == "uuid" and len(n) > 1:
-                n[1] = uid()
         if t == "zone":
             _place_zone(child, x, y, rot, bottom)
         elif bottom:
@@ -283,7 +315,8 @@ def footprint_instance(fp: libs.Footprint, ref: str, value: str, x: float, y: fl
             _rotate_at(child, rot)
         if t == "pad":
             name = child[1] if len(child) > 1 and isinstance(child[1], str) else ""
-            _min_drill(child)
+            # Project geometry is an explicit declaration; process DRC can reject a small hole.
+            if not fp.lib_id.startswith('Project:') and (find(child,'uuid') or [None,None])[1] not in overridden:_min_drill(child)
             for i in range(len(child) - 1, -1, -1):
                 if tag(child[i]) == "net":
                     del child[i]
@@ -304,7 +337,7 @@ def footprint_instance(fp: libs.Footprint, ref: str, value: str, x: float, y: fl
                     child[2] = str(val)
             continue
         out.insert(5, [Sym("property"), key, str(val), S(Sym("at"), 0, 0, 0),
-                       S(Sym("layer"), "B.Fab" if bottom else "F.Fab"), S(Sym("hide"), Sym("yes")), [Sym("uuid"), uid()],
+                       S(Sym("layer"), "B.Fab" if bottom else "F.Fab"), S(Sym("hide"), Sym("yes")), [Sym("uuid"), uid(f'footprint:{ref}:{fp.lib_id}:property:{key}')],
                        [Sym("effects"), [Sym("font"), S(Sym("size"), 1, 1), S(Sym("thickness"), 0.15)]]])
     return out
 
@@ -312,7 +345,11 @@ def footprint_instance(fp: libs.Footprint, ref: str, value: str, x: float, y: fl
 def build(spec: dict, out_dir: Path) -> dict:
     """Write <name>.kicad_pcb and <name>.kicad_pro. Returns paths and placement notes."""
     spec = design.normalise(spec)
+    from .. import stackup
+    stackup.validate(spec)
     out_dir.mkdir(parents=True, exist_ok=True)
+    from ..project_library import export as export_project_library
+    export_project_library(spec,out_dir)
     name = spec["name"]
     b = spec["board"]
     rules = spec["rules"]
@@ -322,21 +359,24 @@ def build(spec: dict, out_dir: Path) -> dict:
     pin_net = design.pin_net_map(spec)
 
     pcb: list = [
-        Sym("kicad_pcb"), S(Sym("version"), Sym(FORMAT_VERSION)), S(Sym("generator"), "pcbnew"),
-        S(Sym("generator_version"), "10.0"),
+        Sym("kicad_pcb"), S(Sym("version"), Sym(FORMAT_VERSION)), S(Sym("generator"), "wholeboard"),
+        S(Sym("generator_version"), __version__),
         [Sym("general"), S(Sym("thickness"), float(b["thickness_mm"])), S(Sym("legacy_teardrops"), Sym("no"))],
         S(Sym("paper"), "A4"),
-        _layers_node(nlayers),
+        _layers_node(max(2,nlayers),b.get('stackup')),
         [Sym("setup"), S(Sym("pad_to_mask_clearance"), 0),
          S(Sym("allow_soldermask_bridges_in_footprints"), Sym("no"))],
     ]
+    physical=stackup.native_node(b)
+    if physical is not None:find(pcb,'setup').insert(1,physical)
 
     # Parts without a fixed place start in a pile beside the board, for the placer.
     pile_x, pile_y, row_h = x0 + w + 10, y0, 0.0
     links = schematic.board_links(spec)
     placed_notes = []
     for c in spec["components"]:
-        fp = libs.load_footprint(c["footprint"])
+        if design.pcb_excluded(c):continue
+        fp = libs.load_footprint(c["footprint"],spec)
         if fp is None:
             raise ValueError(f"footprint {c['footprint']} not found")
         ref = c["ref"]
@@ -357,13 +397,22 @@ def build(spec: dict, out_dir: Path) -> dict:
             row_h = max(row_h, fh)
             rot, locked = 0.0, False
         props = {"LCSC": c.get("lcsc"), "MPN": c.get("mpn"), "Description": c.get("description")}
+        if c.get('bus_type'):props['Bus Type']=c['bus_type']
+        if c.get('pin_properties'):props['WB Pin Properties']=json.dumps(c['pin_properties'],ensure_ascii=False,separators=(',',':'))
         link = links.get(ref)
-        pcb.append(footprint_instance(fp, ref, str(c.get("value") or ref), x, y, rot, locked,
-                                      pad_nets, props, link, bottom=design.on_bottom(c)))
+        instance=footprint_instance(fp,ref,str(c.get('value') or ref),x,y,rot,locked,pad_nets,props,link,bottom=design.on_bottom(c),pad_overrides=c.get('pad_overrides'))
+        from .. import buses
+        buses.native_pad_metadata(spec,c,instance)
+        if c.get('terminal'):
+            attr=find(instance,'attr')
+            if attr is None:attr=[Sym('attr')];instance.append(attr)
+            for value in ('exclude_from_pos_files','exclude_from_bom'):
+                if value not in attr:attr.append(Sym(value))
+        pcb.append(instance)
 
     mh = b.get("mounting_holes")
     if mh:
-        fp = libs.load_footprint(design.hole_footprint(spec)) or libs.load_footprint("MountingHole:MountingHole_3.2mm_M3")
+        fp = libs.load_footprint(design.hole_footprint(spec),spec) or libs.load_footprint("MountingHole:MountingHole_3.2mm_M3")
         for i, (mx, my) in enumerate(design.hole_positions(spec), start=1):
             pcb.append(footprint_instance(fp, f"H{i}", "MountingHole", x0 + mx, y0 + my, 0, True))
 
@@ -373,9 +422,12 @@ def build(spec: dict, out_dir: Path) -> dict:
         pcb += outline(w, h, float(b.get("corner_radius_mm") or 0))
 
     pcb += fixed_copper(spec)
+    from .copper import zones
+    preserved_zones=zones(spec,ORIGIN)
+    pcb += preserved_zones
 
-    for layer, net in (b.get("planes") or {}).items():
-        if layer in copper_layers(nlayers):
+    for layer, net in stackup.plane_map(b).items():
+        if layer in copper_layers(nlayers) and not any(str(find(z,'net')[1])==net and ((find(z,'layer') and str(find(z,'layer')[1])==layer) or (find(z,'layers') and layer in find(z,'layers')[1:])) for z in preserved_zones):
             pcb.append(zone(net, layer, w, h, rules["edge_clearance_mm"], rules["clearance_mm"]))
 
     pcb.append(S(Sym("embedded_fonts"), Sym("no")))
@@ -384,31 +436,44 @@ def build(spec: dict, out_dir: Path) -> dict:
     pro_path = out_dir / f"{name}.kicad_pro"
     pro_path.write_text(json.dumps(project_json(spec), indent=2), encoding="utf-8")
     dru.write(spec, out_dir)
-    return {"pcb": str(pcb_path), "pro": str(pro_path), "notes": placed_notes}
+    construction=stackup.write_report(spec,pcb_path)
+    return {"pcb": str(pcb_path), "pro": str(pro_path), "notes": placed_notes,**({'stackup_report':str(construction)} if construction else {})}
 
 
 def fixed_copper(spec: dict) -> list[list]:
-    """Tracks and vias the router must keep (hand-routed in KiCad), locked."""
+    """Authored copper with explicit automation protection; legacy source defaults protected."""
     x0, y0 = ORIGIN
     layers = set(copper_layers(int(spec["board"]["layers"])))
     out = []
+    from .copper import identity
+    seen={}
+    def protection(item):
+        if 'locked' in item and type(item['locked']) is not bool:raise ValueError('Copper protection must be a boolean.')
+        return [S(Sym('locked'),Sym('yes'))] if item.get('locked',True) else []
+    def copper_id(item,kind,net):
+        if isinstance(item.get('id'),str):return identity(item)
+        key=f'{kind}:{net}:'+json.dumps(item,sort_keys=True)
+        index=seen.get(key,0);seen[key]=index+1
+        return uid(f'fixed-copper:{key}:{index}')
     for cu in spec.get("fixed_copper") or []:
         net = cu["net"]
         for t in cu.get("tracks") or []:
             if t["layer"] in layers:
                 out.append([Sym("segment"), S(Sym("start"), x0 + t["a"][0], y0 + t["a"][1]),
                             S(Sym("end"), x0 + t["b"][0], y0 + t["b"][1]), S(Sym("width"), float(t["w"])),
-                            S(Sym("locked"), Sym("yes")), S(Sym("layer"), t["layer"]), S(Sym("net"), net), [Sym("uuid"), uid()]])
+                            *protection(t), S(Sym("layer"), t["layer"]), S(Sym("net"), net), [Sym("uuid"), copper_id(t,'track',net)]])
         for t in cu.get("arcs") or []:
             if t["layer"] in layers:
                 out.append([Sym("arc"), S(Sym("start"), x0 + t["a"][0], y0 + t["a"][1]),
                             S(Sym("mid"), x0 + t["m"][0], y0 + t["m"][1]), S(Sym("end"), x0 + t["b"][0], y0 + t["b"][1]),
-                            S(Sym("width"), float(t["w"])), S(Sym("locked"), Sym("yes")), S(Sym("layer"), t["layer"]),
-                            S(Sym("net"), net), [Sym("uuid"), uid()]])
+                            S(Sym("width"), float(t["w"])), *protection(t), S(Sym("layer"), t["layer"]),
+                            S(Sym("net"), net), [Sym("uuid"), copper_id(t,'arc',net)]])
         for v in cu.get("vias") or []:
-            out.append([Sym("via"), S(Sym("locked"), Sym("yes")), S(Sym("at"), x0 + v["p"][0], y0 + v["p"][1]),
+            span = v.get("layers") or ["F.Cu", "B.Cu"]
+            kind = v.get("type") or ("through" if set(span) == {"F.Cu", "B.Cu"} else "blind")
+            out.append([Sym("via"), *([Sym(kind)] if kind in ("blind", "micro") else []), *protection(v), S(Sym("at"), x0 + v["p"][0], y0 + v["p"][1]),
                         S(Sym("size"), float(v["d"])), S(Sym("drill"), float(v["drill"])),
-                        S(Sym("layers"), "F.Cu", "B.Cu"), S(Sym("net"), net), [Sym("uuid"), uid()]])
+                        S(Sym("layers"), *span), S(Sym("net"), net), [Sym("uuid"), copper_id(v,'via',net)]])
     return out
 
 
@@ -485,7 +550,7 @@ def project_json(spec: dict) -> dict:
             "tuning_profile": "",
         }
 
-    return {
+    project = {
         "board": {
             "design_settings": {
                 "rules": {
@@ -522,3 +587,6 @@ def project_json(spec: dict) -> dict:
         "pcbnew": {"page_layout_descr_file": ""},
         "sheets": [], "text_variables": {},
     }
+    from .. import buses
+    buses.native_timing_profiles(spec,project,controlled)
+    return project

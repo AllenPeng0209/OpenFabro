@@ -20,7 +20,7 @@ JLC_SEARCH = "https://jlcpcb.com/api/overseas-pcb-order/v1/shoppingCart/smtGood/
 JLCSEARCH = "https://jlcsearch.tscircuit.com"
 CACHE_FILE = config.APP_DIR / "parts-cache.json"
 CACHE_TTL = 24 * 3600
-UA = {"User-Agent": "WholeBoard/0.1 (+KiCad workbench)", "Accept": "application/json"}
+UA = {"User-Agent": "OpenFabro/0.1 (+KiCad workbench)", "Accept": "application/json"}
 
 _lock = threading.Lock()
 _cache: dict | None = None

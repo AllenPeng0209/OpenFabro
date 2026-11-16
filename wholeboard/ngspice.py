@@ -3,7 +3,7 @@
 ngspice is used in one of three ways, whichever is found first:
   - the ngspice program (installed by install.sh / Homebrew / the official Windows build),
   - the ngspice shared library that KiCad bundles for its own simulator (run in a child
-    process through ngspice_shared.py, so a crash cannot take WholeBoard down),
+    process through ngspice_shared.py, so a crash cannot take OpenFabro down),
   - the ngspice inside the Docker image when kicad-cli itself is a Docker wrapper.
 
 Netlists carry their own .control block that runs the analyses and writes ASCII raw files,

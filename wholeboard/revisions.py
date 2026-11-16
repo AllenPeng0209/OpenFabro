@@ -4,9 +4,11 @@ from __future__ import annotations
 import json
 import re
 import time
+import hashlib
 from pathlib import Path
 
 from .project import Project
+from . import design_identity
 
 
 def _spec(rdir: Path) -> dict | None:
@@ -103,7 +105,70 @@ def compare(a: dict | None, b: dict | None) -> dict:
             "parts_changed": changed,
             "nets_added": [{"net": n, "pins": sorted(nb[n])} for n in sorted(set(nb) - set(na))],
             "nets_removed": [{"net": n, "pins": sorted(na[n])} for n in sorted(set(na) - set(nb))],
-            "nets_changed": net_changes, "board": board, "rules": rules}
+            "nets_changed": net_changes, "board": board, "rules": rules,**field_comparison(a,b)}
+
+
+def field_comparison(a,b,limit=200):
+    """Complete JSON comparison, including copper/libraries and unknown future fields."""
+    changes=[];representations=[];count=0;representation_count=0;missing=object();values_truncated=False;representation_truncated=False
+    def bounded(value):
+        nonlocal values_truncated
+        encoded=json.dumps(value,ensure_ascii=False)
+        if len(encoded)>2000:
+            values_truncated=True
+            return {'preview':encoded[:2000],'value_truncated':True}
+        return value
+    def walk(left,right,path):
+        nonlocal count,representation_count,representation_truncated
+        if isinstance(left,dict) and isinstance(right,dict):
+            for key in sorted(left.keys()|right.keys()):walk(left.get(key,missing),right.get(key,missing),path+'/'+str(key).replace('~','~0').replace('/','~1'))
+        elif isinstance(left,list) and isinstance(right,list):
+            for index in range(max(len(left),len(right))):walk(left[index] if index<len(left) else missing,right[index] if index<len(right) else missing,path+'/'+str(index))
+        elif left is not missing and right is not missing and design_identity.equal(left,right):
+            if type(left) is not type(right) or json.dumps(left)!=json.dumps(right):
+                representation_count+=1
+                if len(representations)<limit:representations.append({'path':path or '/','before':left,'after':right,'before_json':json.dumps(left),'after_json':json.dumps(right)})
+                else:representation_truncated=True
+        else:
+            count+=1
+            if len(changes)<limit:
+                change={'path':path or '/','kind':'added' if left is missing else 'removed' if right is missing else 'changed'}
+                if left is not missing:change['before']=bounded(left)
+                if right is not missing:change['after']=bounded(right)
+                changes.append(change)
+    walk(a,b,'')
+    keys=sorted(a.keys()|b.keys())
+    digest=lambda value:hashlib.sha256(json.dumps(value,sort_keys=True,ensure_ascii=False,separators=(',',':')).encode()).hexdigest()
+    same={key:key in a and key in b and design_identity.equal(a[key],b[key]) for key in keys}
+    serialization_changed=[key for key in keys if key not in a or key not in b or digest(a[key])!=digest(b[key])]
+    return {'field_changes':changes,'field_change_count':count,'field_changes_truncated':count>limit or values_truncated,
+            'comparison_policy':design_identity.POLICY,
+            'representation_changes':representations,'representation_change_count':representation_count,'representation_changes_truncated':representation_truncated,
+            'changed_sections':[key for key in keys if not same[key]],
+            'unchanged_sections':[key for key in keys if same[key]],
+            'serialization_changed_sections':serialization_changed,
+            'before_semantic_sha256':design_identity.fingerprint(a),'after_semantic_sha256':design_identity.fingerprint(b),
+            'before_sha256':digest(a),'after_sha256':digest(b)}
+
+
+def design_history(p,arguments):
+    """Read only the owning project's design snapshots; never accept file paths."""
+    with p.lock:
+        current=(p.state.get('workbench') or {}).get('version',0)
+        available=sorted(int(match[1]) for path in (p.root/'history').glob('design-v*.json') if (match:=re.fullmatch(r'design-v(\d+)\.json',path.name)) and not path.is_symlink())
+        result={'current_version':current,'versions':available}
+        if 'from_version' not in arguments:return result
+        first,last=arguments['from_version'],arguments.get('to_version',current)
+        def read_version(version):
+            if type(version) is not int or version<0 or version>10_000_000:raise ValueError('Choose an integer design version from this project history.')
+            path=p.root/'history'/f'design-v{version}.json';target=path.resolve()
+            if not target.is_relative_to(p.root.resolve()) or path.is_symlink() or not path.is_file() or path.stat().st_size>20_000_000:raise ValueError('Design version not found inside this project, or snapshot is too large.')
+            payload=path.read_bytes();data=json.loads(payload)
+            if not isinstance(data,dict) or data.get('version')!=version or not isinstance(data.get('spec'),dict):raise ValueError('The design snapshot is invalid.')
+            return data['spec'],hashlib.sha256(payload).hexdigest()
+        a,from_hash=read_version(first);b,to_hash=read_version(last)
+        result.update(from_version=first,to_version=last,from_snapshot_sha256=from_hash,to_snapshot_sha256=to_hash,**compare(a,b))
+        return result
 
 
 def brief(d: dict) -> str:
@@ -131,6 +196,9 @@ def brief(d: dict) -> str:
             bits.append(f"board {k.replace('_', ' ')} changed")
     if d["rules"]:
         bits.append("design rules changed")
+    for section,label in (('fixed_copper','PCB copper changed'),('fixed_zones','copper zones changed'),('library','project library changed'),('editor','schematic drawing changed')):
+        if section in d.get('changed_sections',[]):bits.append(label)
+    if not bits and d.get('field_change_count'):bits.append('project metadata changed')
     return ", ".join(bits) or "no design changes (rebuilt)"
 
 

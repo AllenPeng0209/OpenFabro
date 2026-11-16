@@ -48,7 +48,7 @@ def token(cfg: dict | None = None) -> tuple[str | None, str | None]:
 def _api(tok: str, method: str, path: str, body: dict | None = None, timeout: float = 60):
     req = urllib.request.Request(API + path, method=method, data=None if body is None else json.dumps(body).encode(),
                                  headers={"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json",
-                                          "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "WholeBoard"})
+                                          "X-GitHub-Api-Version": "2022-11-28", "User-Agent": "OpenFabro"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             return json.loads(r.read() or b"null")
@@ -73,7 +73,7 @@ def account(cfg: dict | None = None) -> dict:
     tok, source = token(cfg)
     if not tok:
         return {"ok": False, "error": "No GitHub account: sign in with `gh auth login` on the computer running "
-                                      "WholeBoard, or add a token in Settings → GitHub."}
+                                      "OpenFabro, or add a token in Settings → GitHub."}
     try:
         user = _api(tok, "GET", "/user", timeout=15)
     except PublishError as e:
@@ -175,12 +175,12 @@ def readme(p: Project, paths: list[str]) -> str:
     groups = [("kicad/", "KiCad project (open the .kicad_pro in KiCad)"), ("fab/", "Files for JLCPCB"),
               ("images/", "Renders and schematic"), ("enclosure/", "3D-printable enclosure"),
               ("firmware/", "Starter firmware (PlatformIO)"), ("docs/", "Bring-up guide and report"),
-              ("design.json", "The design as WholeBoard describes it; import it to change and rebuild the board")]
+              ("design.json", "The design as OpenFabro describes it; import it to change and rebuild the board")]
     lines += ["## Files", ""]
     for prefix, label in groups:
         if any(x.startswith(prefix) for x in paths):
             lines.append(f"- [`{prefix}`]({prefix.rstrip('/')}): {label}")
-    lines += ["", "Designed with WholeBoard.", ""]
+    lines += ["", "Designed with OpenFabro.", ""]
     return "\n".join(lines)
 
 
@@ -222,7 +222,7 @@ def publish(p: Project, name: str | None = None, description: str | None = None,
                                                  "has_wiki": False, "has_projects": False})
         full = repo["full_name"]
         try:
-            _api(tok, "PUT", f"/repos/{full}/topics", {"names": ["pcb", "kicad", "jlcpcb", "wholeboard"]})
+            _api(tok, "PUT", f"/repos/{full}/topics", {"names": ["hardware", "pcb", "kicad", "jlcpcb", "openfabro"]})
         except PublishError:
             pass                                             # topics are a nicety
     branch = repo.get("default_branch") or "main"

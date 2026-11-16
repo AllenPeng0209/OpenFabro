@@ -1,0 +1,31 @@
+{
+  "name": "openfabro-workbench",
+  "private": true,
+  "version": "0.1.0",
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "dev": "bash run-workbench.sh --no-browser",
+    "vendor": "node scripts/vendor.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:cad": "node --test tests/workbench-cad-model.test.mjs tests/workbench-camera.test.mjs tests/workbench-diff-pair.test.mjs tests/workbench-pair-geometry.test.mjs tests/workbench-route-cursor.test.mjs",
+    "test:browser": "node scripts/browser-checks.mjs",
+    "test:production": "node --test tests/production-entry.test.mjs tests/production-ui.test.mjs"
+  },
+  "dependencies": {
+    "dompurify": "3.4.17",
+    "marked": "18.2.0",
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "playwright": "1.65.0"
+  },
+  "description": "OpenFabro interactive hardware engineering workbench",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AllenPeng0209/OpenFabro.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AllenPeng0209/OpenFabro/issues"
+  }
+}

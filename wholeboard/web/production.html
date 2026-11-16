@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex,nofollow">
+  <title>生产对接 · OpenFabro</title>
+  <link rel="icon" href="/static/icon.svg">
+  <link rel="stylesheet" href="/static/production.css">
+</head>
+<body>
+  <a href="#productionApp" class="skip-link">跳到生产工作台</a>
+  <header class="app-bar">
+    <a class="brand" href="/" aria-label="OpenFabro 设计工作台"><img src="/static/openfabro-mascot.png" alt="" width="28" height="28"><strong>OpenFabro</strong></a>
+    <span class="bar-divider"></span><span id="pageHeading">生产对接</span>
+    <div id="projectControls"><label for="projectSelect">项目</label><select id="projectSelect" aria-label="选择生产项目"></select></div>
+    <nav><a id="backToEditor" class="button secondary" href="/">返回设计</a><button type="button" id="refreshProduction" class="button secondary">刷新记录</button></nav>
+  </header>
+  <div class="page-shell"><div id="productionNotice" class="notice" role="status" aria-live="polite" hidden></div><main id="productionApp"><div class="empty-screen"><p>正在读取生产记录…</p></div></main></div>
+  <script type="module" src="/static/production.mjs"></script>
+</body>
+</html>

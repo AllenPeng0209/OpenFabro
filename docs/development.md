@@ -2,11 +2,40 @@
 
 ## Set up
 
-```
-.venv/bin/pip install -e ".[dev,docs]"
-.venv/bin/python -m pytest -q
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev,docs]"
+npm ci
+npm run vendor
+python -m pytest tests -q
+npm test
 ```
 
+Node.js 22 or newer is required for frontend development. Windows contributors can run
+Python commands with `.\.venv\Scripts\python.exe`. The Python distribution includes
+the browser assets, so Node.js is not required to run an installed package.
+
+Use `./run-workbench.sh` on macOS/Linux for a checkout-local workspace, or
+`python -m openfabro` for the standard launcher. The public `openfabro` package delegates
+to the `wholeboard` implementation namespace for compatibility.
+
+## Browser and package verification
+
+```sh
+npx playwright install chromium
+npm run test:browser -- --suite=production
+python scripts/verify-package.py
+```
+
+The browser runner starts isolated workspaces and writes artifacts to `test-results/`.
+Choose another filename substring with `--suite=...`, omit it for the standard suite,
+or add `--mechanical` for the mechanical integration suites. Native checks require the
+relevant KiCad, FreeCAD, ngspice, or routing dependencies. Package verification builds
+a wheel, installs it outside the checkout, and exercises its isolated server and assets.
+
+`pytest` is scoped to `tests/`; separate experiments and generated directories are
+outside the application suite. Skipped native-tool coverage must be reported explicitly.
 
 ## The documentation
 
@@ -25,12 +54,19 @@
 - When you make a choice someone would otherwise undo, write a [decision record](decisions/index.md).
 - Add a line to `CHANGELOG.md` under *Unreleased* for anything a user would notice.
 
-The site is published to GitHub Pages by `.github/workflows/docs.yml` on every push to `main`.
+`.github/workflows/ci.yml` checks Python, JavaScript, bundled browser assets, and the
+installed package. `.github/workflows/docs.yml` builds the documentation and uploads
+the site as a workflow artifact. Public documentation hosting is configured separately.
 
 ## Code map
 
 | Where | What |
 |---|---|
+| `openfabro/` | Public launch commands and compatibility wrappers |
+| `wholeboard/workbench.py`, `workbench_native.py` | Interactive design APIs and native geometry |
+| `wholeboard/mechanical.py`, `freecad_*.py`, `sketch_program.py` | Mechanical models, assemblies, native CAD and sketches |
+| `wholeboard/production/` | Estimates, immutable packages, supplier inquiries and progress records |
+| `wholeboard/codex_bridge.py` | Local Codex provider, engineering tools and guarded proposals |
 | `wholeboard/ai/` | Providers, the designer agent, the expert model |
 | `wholeboard/pipeline.py` | The build steps |
 | `wholeboard/design.py` | Design validation and normalisation |
@@ -53,3 +89,6 @@ The site is published to GitHub Pages by `.github/workflows/docs.yml` on every p
 | `wholeboard/doctor.py` | Tool checks and installers |
 
 Module-level detail is in the [Python API](api/index.md).
+
+See the repository's [contribution guide](https://github.com/AllenPeng0209/OpenFabro/blob/main/CONTRIBUTING.md)
+for pull requests, documentation conventions, and validation expectations.

@@ -45,6 +45,10 @@ PROFILES = {
 }
 LIMITS = ("max_length_mm", "max_skew_mm", "max_match_mm", "max_vias", "max_stub_mm", "max_skew_between_mm")
 
+def groups(spec):
+    from . import buses
+    return [*(spec.get('impedance') or []),*buses.impedance_groups(spec)]
+
 
 def profiled(group: dict) -> dict:
     """A group with its profile's limits filled in (the group's own fields win)."""
@@ -55,7 +59,8 @@ def profiled(group: dict) -> dict:
 
 
 def stackup(layers: int, thickness: float = 1.6) -> dict:
-    s = dict(STACKUPS.get(layers) or STACKUPS[4])
+    if layers not in STACKUPS:return {'name':f'{layers}-layer unspecified stackup','h':None,'er':None,'unavailable':'Declare the actual construction and reference plane.'}
+    s = dict(STACKUPS[layers])
     if s["h"] is None:
         s["h"] = max(thickness - 2 * COPPER_MM, 0.2)
     return s
@@ -81,26 +86,34 @@ def _solve(fn, target: float, lo: float = 0.05, hi: float = 6.0) -> float:
     return (lo + hi) / 2
 
 
-def design_rule(group: dict, layers: int, thickness: float, clearance: float) -> dict:
+def design_rule(group: dict, layers: int, thickness: float, clearance: float, board_spec: dict | None = None) -> dict:
     """Width (and gap) for one impedance group, and whether it is practical on this stack-up."""
     group = profiled(group)
-    st = stackup(layers, thickness)
+    common={"nets":list(group.get('nets',[])),"kind":group.get('kind','single'),'ohms':group.get('ohms'),**{k:group[k] for k in ('profile','profile_title','match',*LIMITS) if group.get(k) is not None}}
+    if board_spec and board_spec.get('stackup'):
+        from . import stackup as physical
+        st=physical.parameters(board_spec,group.get('layer','F.Cu'))
+        if st is None:st={'name':board_spec['stackup']['name'],'h':None,'er':None}
+    else:st = stackup(layers, thickness)
     h, er = st["h"], st["er"]
+    if h is None or er is None:return {**common,'stackup':st['name'],'h_mm':None,'er':None,'practical':False,'width_mm':None,'note':'A supported outer-layer trace and adjacent declared reference plane are required.'}
     ohms = float(group.get("ohms") or (90 if group.get("kind") == "diff" else 50))
+    t=st.get('copper_mm',COPPER_MM)
     out = {"nets": list(group.get("nets") or []), "kind": group.get("kind", "single"), "ohms": ohms,
            "stackup": st["name"], "h_mm": round(h, 4), "er": er,
+           **({key:st[key] for key in ('copper_mm','reference_layer','reference_net','source','model') if key in st}),
            **{k: group[k] for k in ("profile", "profile_title", "match", *LIMITS) if group.get(k) is not None}}
     if out["kind"] == "bus":            # length and matching only, no impedance target
         out.update(ohms=None, practical=False, width_mm=None)
         return out
     if out["kind"] == "diff":
         gap = max(float(group.get("gap_mm") or 0) or max(clearance, MIN_GAP, round(h * 0.8, 3)), MIN_GAP)
-        w = _solve(lambda x: diff_microstrip(x, gap, h, er), ohms)
-        out.update(width_mm=round(w, 3), gap_mm=round(gap, 3), achieved=round(diff_microstrip(w, gap, h, er), 1),
-                   max_skew_mm=float(group.get("max_skew_mm") or 1.25))
+        w = _solve(lambda x: diff_microstrip(x, gap, h, er,t), ohms)
+        out.update(width_mm=round(w, 3), gap_mm=round(gap, 3), achieved=round(diff_microstrip(w, gap, h, er,t), 1),
+                   max_skew_mm=float(group['max_skew_mm']) if group.get('max_skew_mm') is not None else None if group.get('source')=='terminal_bus' else 1.25)
     else:
-        w = _solve(lambda x: microstrip(x, h, er), ohms)
-        out.update(width_mm=round(w, 3), achieved=round(microstrip(w, h, er), 1))
+        w = _solve(lambda x: microstrip(x, h, er,t), ohms)
+        out.update(width_mm=round(w, 3), achieved=round(microstrip(w, h, er,t), 1))
     out["practical"] = MIN_TRACK <= out["width_mm"] <= 0.6
     if out["width_mm"] < MIN_TRACK:
         out["note"] = f"{ohms:g} Ω needs a {out['width_mm']} mm track, below JLCPCB's {MIN_TRACK} mm minimum"
@@ -115,14 +128,14 @@ def design_rule(group: dict, layers: int, thickness: float, clearance: float) ->
 
 def rules(spec: dict) -> list[dict]:
     b, r = spec["board"], spec["rules"]
-    return [design_rule(g, int(b["layers"]), float(b.get("thickness_mm") or 1.6), float(r["clearance_mm"]))
-            for g in spec.get("impedance") or [] if isinstance(g, dict)]
+    return [design_rule(g, int(b["layers"]), float(b.get("thickness_mm") or 1.6), float(r["clearance_mm"]),b)
+            for g in groups(spec) if isinstance(g, dict)]
 
 
 def validate(spec: dict) -> tuple[list[str], list[str]]:
     errors, warnings = [], []
     names = {n["name"] for n in spec.get("nets") or []}
-    for i, g in enumerate(spec.get("impedance") or []):
+    for i, g in enumerate(groups(spec)):
         if not isinstance(g, dict) or not g.get("nets"):
             errors.append(f"impedance[{i}] needs a list of nets")
             continue
@@ -168,8 +181,9 @@ def netclasses(spec: dict) -> list[dict]:
 
 
 def has_pairs(spec: dict) -> bool:
+    from . import buses
     return any(g.get("kind") == "diff" and len(g.get("nets") or []) == 2 and pair_names(*g["nets"])
-               for g in map(profiled, (x for x in spec.get("impedance") or [] if isinstance(x, dict))))
+               for g in map(profiled, (x for x in [*(spec.get('impedance') or []),*buses.compile(spec)['groups']] if isinstance(x, dict))))
 
 
 def _stub(geo: dict, net: str) -> float:
@@ -289,7 +303,7 @@ def check(spec: dict, geo: dict) -> dict:
                                 f"{g['max_match_mm']:g} mm of each other{what}")
         if g["kind"] == "diff" and len(rows) == 2 and rows[0]["length_mm"] and rows[1]["length_mm"]:
             row["skew_mm"] = round(abs(rows[0]["length_mm"] - rows[1]["length_mm"]), 2)
-            if row["skew_mm"] > g["max_skew_mm"]:
+            if g.get('max_skew_mm') is not None and row["skew_mm"] > g["max_skew_mm"]:
                 warnings.append(f"{rows[0]['net']}/{rows[1]['net']} differ in length by {row['skew_mm']} mm "
                                 f"(limit {g['max_skew_mm']} mm); add a small meander to the shorter one in KiCad")
             if rows[0]["vias"] != rows[1]["vias"]:

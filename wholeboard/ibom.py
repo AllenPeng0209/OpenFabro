@@ -15,9 +15,9 @@ def _groups(spec: dict, geo: dict) -> list[dict]:
     groups: dict[tuple, dict] = {}
     for c in spec["components"]:
         fid = c.get("footprint") or ""
-        if design.copper_only(fid):
+        if c.get('terminal') or design.copper_only(fid):
             continue
-        fp = libs.load_footprint(fid)
+        fp = libs.load_footprint(fid,spec)
         tht = bool(fp and any(p.kind == "thru_hole" for p in fp.pads))
         jlc = bool(c.get("lcsc")) and not c.get("dnp")
         key = (c.get("value") or "", fid, c.get("lcsc") or "")

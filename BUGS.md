@@ -79,19 +79,19 @@ With a 240 × 140 mm, 4-layer board at a 0.1 mm pitch (448 nets, 2129 pads), var
 exactly 50 connections and then used the rest of their 120 s. The stuck report marks all 1070 remaining
 connections, including 0.4 mm hops between neighbouring GND pins, as `not_attempted`. One connection may be
 eating the whole budget; a per-connection cap would stop that. Report:
-`~/WholeBoardProjects/20261027-015953-38a2-*/rev1/poe_gbe_switch_10p-3-routed.stuck.json`.
+`~/OpenFabroProjects/20261027-015953-38a2-*/rev1/poe_gbe_switch_10p-3-routed.stuck.json`.
 
-## 7. The board link handed to Claude Code only works on the machine running WholeBoard
+## 7. The board link handed to Claude Code only works on the machine running OpenFabro
 
 `wholeboard/mcp.py`, `new_board` / `open_board`: the link handed out is `http://127.0.0.1:8770/#<id>` (from
 `_base()`, unless `WHOLEBOARD_URL` is set), so pasting it on another device on the LAN or Tailscale fails even
 though the server listens on 0.0.0.0:8770. (The router live view is fine: the web UI rebuilds its link from
 `location.hostname` with the viewer token.)
 
-Fix: when WholeBoard is in LAN mode, hand out the LAN address (or a configurable public base URL) alongside the
+Fix: when OpenFabro is in LAN mode, hand out the LAN address (or a configurable public base URL) alongside the
 local one.
 
-**Fixed 2026-10-31** (uncommitted): when WholeBoard listens on 0.0.0.0, `POST /api/projects` and
+**Fixed 2026-10-31** (uncommitted): when OpenFabro listens on 0.0.0.0, `POST /api/projects` and
 `GET /api/projects/<id>` also return `lan_urls` (one per LAN address), and `new_board` / `open_board` pass them on with a
 note to give those to a user on another machine. The address finder moved to `auth.lan_addresses`.
 
@@ -129,9 +129,9 @@ rules that name nets and for net-aware physical_hole_clearance rules; cached via
 TraceMaker `src/drc/rule_engine.cpp` (around line 489) sets `needs_exact_` for any rule with an unreadable condition
 and for any constraint other than `disallow` (or a net-blind `physical_hole_clearance`). The router then runs with
 `use_cache = false` (`router.cpp:349`), and `use_field` requires `use_cache` (`router.cpp:1568`), so no cost-to-go
-field is built, on the GPU or the CPU. WholeBoard writes its JLCPCB rules (`wholeboard/jlc/capabilities.json`) into
+field is built, on the GPU or the CPU. OpenFabro writes its JLCPCB rules (`wholeboard/jlc/capabilities.json`) into
 every board's `.kicad_dru`, and they are `track_width`, `clearance`, `hole_to_hole` and similar, so every
-WholeBoard board routes this way. One of them, `"JLCPCB: Hole to hole"`, also uses `A.Net != B.Net`, which
+OpenFabro board routes this way. One of them, `"JLCPCB: Hole to hole"`, also uses `A.Net != B.Net`, which
 TraceMaker can't evaluate (`condition uses Net ... rule not applied`).
 
 Seen: rev2 of this board, 8 variants × 7200 s, every variant logged `fields 0 GPU + 0 CPU` and about 4×10⁹
@@ -144,13 +144,13 @@ with no positional condition, and keep exact mode for rules that can actually bi
 `A.Net` / `B.Net`. (The older boards' CPU fields with 0 GPU fallbacks mean those runs had no GPU device selected, `gpu_device = -1`;
 now the first card is picked up (both get a context from device listing), so fixing the cache would put fields on the GPU.)
 
-Measured 2026-10-27 on the rev2 placed board, 300 s per run, same machine: with WholeBoard's `.kicad_dru` the
+Measured 2026-10-27 on the rev2 placed board, 300 s per run, same machine: with OpenFabro's `.kicad_dru` the
 eight variants routed 116, 116, 221, 116, 116, 1079, 116 and 92 connections (no fields, 1189 commits). Without it
 they routed 829, 984, 1050, 963, 820, 1098, 990 and 403 (7059 GPU fields, 0 fallbacks, 8117 commits). The best
 variant gains little, but every other variant is 4–9× further along. (Dropping the file also drops limits that
 can bind, such as 0.5 mm hole-to-hole and 0.3 mm to the edge, so the fix must keep those, not delete the file.)
 
-## 11. WholeBoard's JLCPCB clearance rule lowered every board's clearance to the board minimum
+## 11. OpenFabro's JLCPCB clearance rule lowered every board's clearance to the board minimum
 
 `wholeboard/kicad/dru.py` wrote `(rule "JLCPCB: Copper clearance" (condition "A.Type != 'Zone' && B.Type != 'Zone'")
 (constraint clearance (min 0.09mm)))`. In KiCad (and TraceMaker) a custom clearance rule replaces the net-class
@@ -164,7 +164,7 @@ JLCPCB's) is the floor. `tests/test_fab.py` checks no clearance constraint is wr
 ## 12. TraceMaker's router ignores custom `hole_to_hole`, `hole_clearance` and `edge_clearance` rules
 
 `src/route/obstacles.cpp` (`holes_edges_state`, `fixed_code`, `fixed_via_code`) uses only the board minimums
-(`r_.minimums.hole_clearance`, `hole_to_hole`, `copper_edge_clearance`). WholeBoard's rules ask for 0.254 mm hole to
+(`r_.minimums.hole_clearance`, `hole_to_hole`, `copper_edge_clearance`). OpenFabro's rules ask for 0.254 mm hole to
 copper (board minimum 0.2) and 0.5 mm hole to hole between nets (board minimum 0.25), so the router can place vias the
 KiCad DRC then flags. Doc 05 line 137 lists these among the rules the router honours. (The 0.5 mm rule also uses
 `A.Net`, which TraceMaker can't read, so TraceMaker's own DRC skips it too.)
@@ -190,15 +190,15 @@ thread waiting on it) and kill the process from there, as the timeout timer alre
 
 **Fixed 2026-10-29** (commit c8103e0): a watcher thread kills the process within half a second of the cancel.
 
-## 15. TraceMaker's per-class caches have no memory bound; WholeBoard made one class per impedance pair
+## 15. TraceMaker's per-class caches have no memory bound; OpenFabro made one class per impedance pair
 
 TraceMaker `src/route/router.cpp`, `cache_for`: each (net class, track width) gets three whole-board arrays
-(`margin`, `tight`, `via`; about 120 MB at 240 x 140 mm, 4 layers, 0.1 mm), per variant. WholeBoard's
+(`margin`, `tight`, `via`; about 120 MB at 240 x 140 mm, 4 layers, 0.1 mm), per variant. OpenFabro's
 `impedance.netclasses` wrote one class per impedance group, so this board had 83 classes. Once D139 turned the cache
 on, the eight variants reached 181 GB of 184 GB after 17 minutes of routing (seen 2026-10-27 07:15; the router was
 killed by hand before the OOM killer acted, and Claude Code's background shells were reaped for memory).
 
-**WholeBoard side fixed 2026-10-27** (uncommitted): groups with the same impedance, width, gap and kind share one
+**OpenFabro side fixed 2026-10-27** (uncommitted): groups with the same impedance, width, gap and kind share one
 class (80 pairs → 1 class here); `tests/test_fab.py` covers it. TraceMaker side open: share caches between classes
 with identical values, bound the total, or size the arrays to the routed windows.
 
@@ -245,7 +245,7 @@ port-5 side and the RGMII side), or leave bottom-side space under the chip outli
 (1186/1189 routed) it could not route the last three: `boxed in (target); ... fixed copper encloses the pin`, since the
 neighbours' fan-outs wall in the stuck pins and they may not be ripped. Removing the tracks within 2.5 mm of the stuck
 pins by hand (364 segments, 44 vias) and routing for 15 minutes left 11 open instead of 3. The only other choice is
-`--reroute`, a fresh two-hour run. WholeBoard's ECO retry (8) has the same problem.
+`--reroute`, a fresh two-hour run. OpenFabro's ECO retry (8) has the same problem.
 Fix idea: a repair mode that keeps the routed board but may rip up existing unlocked connections near the failures
 (negotiated rip-up limited to a window that grows on each failure), then reroutes what it ripped.
 
@@ -268,13 +268,13 @@ the pads, the gap and the largest clearance that fits. Checked against KiCad's D
 On the 5-port switch's rev10, U20 pad 17 (+54V) reached the In2.Cu +54V plane through a via at (117.75, 181.3). There
 the plane is a 0.85 × 12 mm sliver walled off from the rest by the antipads of neighbouring vias, so KiCad's DRC
 reported it unconnected. TraceMaker saw it: `route.json` has `unconnected_after_refill: 6` and its refill repair
-failed (`kept: false`). But `routed == connections`, so WholeBoard showed "661/661 connections" and the route step
+failed (`kept: false`). But `routed == connections`, so OpenFabro showed "661/661 connections" and the route step
 done, and went on to DRC instead of the ECO retry.
-Fix ideas: WholeBoard's route step should count `unconnected_after_refill` as unrouted (warn, and run the ECO retry);
+Fix ideas: OpenFabro's route step should count `unconnected_after_refill` as unrouted (warn, and run the ECO retry);
 TraceMaker should count a plane connection as made only if its via lands in the plane's main body, or route on to one
 that does.
 
-**WholeBoard side fixed 2026-10-31** (uncommitted): `router.route` counts `unconnected_after_refill` as open
+**OpenFabro side fixed 2026-10-31** (uncommitted): `router.route` counts `unconnected_after_refill` as open
 (`refill_open`), so the route step runs the ECO retry. If every connection is routed but some are still cut off after
 the retry, the step warns and goes on to KiCad's DRC, which refills and decides. TraceMaker side open.
 
@@ -294,7 +294,7 @@ U10.84, boxed in by fixed copper). The pipeline stopped at "1 of 5 connections r
 KiCad's DRC was clean (0 errors, 0 unconnected).
 **Fixed 2026-10-29** (uncommitted): `pipeline._left_to_pour` notices when every open connection is a pad of the pour's
 net to a zone. The route step then warns, skips the ECO retry and goes on to DRC, whose refill decides.
-**Then fixed properly 2026-10-29** (uncommitted): when TraceMaker has `route --pour`, WholeBoard passes
+**Then fixed properly 2026-10-29** (uncommitted): when TraceMaker has `route --pour`, OpenFabro passes
 `--pour GND@F.Cu --pour GND@B.Cu` (from `board.ground_pour`), so the router pours before routing, routes against the pour
 (soft zones) and counts these pads itself. `add_ground_pour` now adds a pour only on layers the router did not pour (an
 older TraceMaker), the ECO retry drops the first route's pours before routing again, and `_left_to_pour` applies only

@@ -2,7 +2,7 @@
 
 ## Projects
 
-`~/WholeBoardProjects/<date>-<name>/` (the folder is set by `projects_dir` in [Settings](settings.md)):
+`~/OpenFabroProjects/<date>-<name>/` (the folder is set by `projects_dir` in [Settings](settings.md)):
 
 | Path | |
 |---|---|
@@ -15,19 +15,23 @@
 | `revN/summary.json` | The *History* entry |
 | `exports/` | The zipped KiCad project, firmware and bring-up guide |
 
-## WholeBoard's own files
+## OpenFabro's own files
 
 | Path | |
 |---|---|
-| `~/.wholeboard/config.json` | Settings and API keys (readable by your user only on Linux and macOS) |
-| `~/.wholeboard/blocks/` | [Your own building blocks](../how-to/add-block.md) |
-| `~/.wholeboard/models3d/` | Downloaded 3D part models |
-| `~/.wholeboard/tools/` | Tools the installer fetched (FreeCAD AppImage) |
-| `~/.wholeboard/kikit-py/` | KiKit, for KiCad's Python |
-| `~/.wholeboard/mcp/` | The MCP server's working copies |
-| `~/.wholeboard/` | Also library copies and the parts cache |
+| `~/.openfabro/config.json` | Settings and API keys (readable by your user only on Linux and macOS) |
+| `~/.openfabro/blocks/` | [Your own building blocks](../how-to/add-block.md) |
+| `~/.openfabro/models3d/` | Downloaded 3D part models |
+| `~/.openfabro/tools/` | Tools the installer fetched (FreeCAD AppImage) |
+| `~/.openfabro/kikit-py/` | KiKit, for KiCad's Python |
+| `~/.openfabro/mcp/` | The MCP server's working copies |
+| `~/.openfabro/` | Also library copies and the parts cache |
 
-Set `WHOLEBOARD_HOME` to move `~/.wholeboard`.
+Set `OPENFABRO_HOME` to choose a settings directory. The older `WHOLEBOARD_HOME` remains supported.
+
+Existing `~/.wholeboard/config.json` and `~/WholeBoardProjects` are reused when the new
+defaults have not been configured. An existing `projects_dir` setting is retained; no project
+files or credentials are moved by the rename.
 
 ## In the repository
 

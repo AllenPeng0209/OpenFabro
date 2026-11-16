@@ -47,10 +47,13 @@ class Project:
         self.worker: threading.Thread | None = None
         self.fw_thread: threading.Thread | None = None
         self.simlab_lock = threading.Lock()
+        self.engine_busy = False
         self.cancel = threading.Event()
-        self.answers: dict[str, str] = {}
+        self.answers: dict[str, str | dict] = {}
         self.answer_ready = threading.Condition(self.lock)
-        self.inbox: list[str] = []
+        self.inbox: list[str | dict] = []
+        self.presence: dict[str, dict] = {}
+        self.presence_listeners: list[Callable[[dict], None]] = []
 
     @property
     def id(self) -> str:
@@ -84,7 +87,10 @@ class Project:
             self.state["status_note"] = note
             self.state["updated"] = time.time()
             self.save()
-        self.emit({"type": "status", "status": status, "note": note})
+        self.emit({"type": "status", "status": status, "note": note, "runtime": self.runtime()})
+
+    def runtime(self) -> dict:
+        return {"agent": bool(self.worker and self.worker.is_alive()), "engine": self.engine_busy}
 
     def step(self, key: str, status: str, detail: str = "") -> None:
         with self.lock:
@@ -92,8 +98,8 @@ class Project:
             self.save()
         self.emit({"type": "step", "key": key, "status": status, "detail": detail})
 
-    def chat(self, role: str, text: str) -> None:
-        self.emit({"type": "chat", "role": role, "text": text})
+    def chat(self, role: str, text: str, **extra) -> None:
+        self.emit({"type": "chat", "role": role, "text": text, **extra})
 
     def log(self, step: str, text: str) -> None:
         self.emit({"type": "log", "step": step, "text": text})
@@ -135,7 +141,7 @@ class Project:
         return {"id": s["id"], "title": self.display_title(), "prompt": s.get("prompt"), "status": s.get("status"),
                 "created": s.get("created"), "updated": s.get("updated") or s.get("created"),
                 "total": (s.get("quote") or {}).get("total"), "thumb": self.thumbnail(),
-                "hidden": bool(s.get("hidden"))}
+                "hidden": bool(s.get("hidden")), "starred": bool(s.get("starred")), "tags": s.get("tags", [])}
 
 
 class Manager:
@@ -165,7 +171,7 @@ class Manager:
                         pass
             if state.get("status") in ("running", "waiting"):
                 state["status"] = "stopped"
-                state["status_note"] = "WholeBoard was restarted; send a message to continue."
+                state["status_note"] = "OpenFabro was restarted; send a message to continue."
             self.projects[state["id"]] = p
 
     def create(self, prompt: str) -> Project:

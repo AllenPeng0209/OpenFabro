@@ -1,0 +1,212 @@
+{
+  "name": "pcb_layer_view_acceptance",
+  "board": {
+    "width_mm": 60,
+    "height_mm": 40,
+    "layers": 4,
+    "ground_pour": null
+  },
+  "components": [
+    {
+      "ref": "R1",
+      "value": "1k",
+      "symbol": "Project:HotkeyResistor",
+      "footprint": "Project:HotkeyPackage",
+      "placement": {
+        "x_mm": 12,
+        "y_mm": 28
+      }
+    },
+    {
+      "ref": "R2",
+      "value": "1k",
+      "symbol": "Project:HotkeyResistor",
+      "footprint": "Project:HotkeyPackage",
+      "placement": {
+        "x_mm": 38,
+        "y_mm": 28,
+        "side": "bottom"
+      }
+    }
+  ],
+  "nets": [
+    {
+      "name": "SIG",
+      "pins": [
+        "R1.1",
+        "R2.1"
+      ]
+    },
+    {
+      "name": "GND",
+      "class": "power",
+      "pins": [
+        "R1.2",
+        "R2.2"
+      ]
+    }
+  ],
+  "library": {
+    "symbols": {
+      "HotkeyResistor": {
+        "name": "Hotkey resistor",
+        "reference": "R",
+        "footprint": "Project:HotkeyPackage",
+        "graphics": [
+          {
+            "kind": "rectangle",
+            "start": [
+              -2.54,
+              2.54
+            ],
+            "end": [
+              2.54,
+              -2.54
+            ],
+            "fill": "background"
+          }
+        ],
+        "pins": [
+          {
+            "number": "1",
+            "name": "A",
+            "x": -5.08,
+            "y": 0,
+            "angle": 0,
+            "length": 2.54,
+            "type": "passive",
+            "unit": 1
+          },
+          {
+            "number": "2",
+            "name": "B",
+            "x": 5.08,
+            "y": 0,
+            "angle": 180,
+            "length": 2.54,
+            "type": "passive",
+            "unit": 1
+          }
+        ]
+      }
+    },
+    "footprints": {
+      "HotkeyPackage": {
+        "name": "Hotkey package",
+        "mount": "smd",
+        "pads": [
+          {
+            "name": "1",
+            "x": -2,
+            "y": 0,
+            "w": 1,
+            "h": 1.5,
+            "angle": 0,
+            "kind": "smd",
+            "shape": "rect",
+            "layer": "F.Cu"
+          },
+          {
+            "name": "2",
+            "x": 2,
+            "y": 0,
+            "w": 1,
+            "h": 1.5,
+            "angle": 0,
+            "kind": "smd",
+            "shape": "rect",
+            "layer": "F.Cu"
+          }
+        ],
+        "graphics": []
+      }
+    }
+  },
+  "editor": {
+    "positions": {
+      "R1": [
+        200,
+        200
+      ],
+      "R2": [
+        600,
+        200
+      ]
+    }
+  },
+  "fixed_copper": [
+    {
+      "net": "SIG",
+      "tracks": [
+        {
+          "a": [
+            5,
+            4
+          ],
+          "b": [
+            55,
+            4
+          ],
+          "w": 0.8,
+          "layer": "F.Cu"
+        },
+        {
+          "a": [
+            5,
+            7
+          ],
+          "b": [
+            55,
+            7
+          ],
+          "w": 0.8,
+          "layer": "In1.Cu"
+        },
+        {
+          "a": [
+            5,
+            10
+          ],
+          "b": [
+            55,
+            10
+          ],
+          "w": 0.8,
+          "layer": "In2.Cu"
+        },
+        {
+          "a": [
+            5,
+            13
+          ],
+          "b": [
+            55,
+            13
+          ],
+          "w": 0.8,
+          "layer": "B.Cu"
+        }
+      ],
+      "vias": [
+        {
+          "p": [
+            50,
+            18
+          ],
+          "d": 1.2,
+          "drill": 0.6
+        }
+      ]
+    }
+  ],
+  "fixed_zones": [
+    {
+      "net": "GND",
+      "origin": [
+        100,
+        100
+      ],
+      "source": "(zone (net \"GND\") (layer \"F.Cu\") (hatch edge 0.5) (connect_pads (clearance 0.3)) (min_thickness 0.25) (fill yes (thermal_gap 0.3) (thermal_bridge_width 0.3)) (polygon (pts (xy 105 125) (xy 155 125) (xy 155 135) (xy 105 135))))"
+    }
+  ]
+}

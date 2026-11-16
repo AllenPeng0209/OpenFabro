@@ -9,7 +9,7 @@ The design names the case in board.case, using the figures from the box maker's 
            "material": "ABS"}              // ABS, PC, aluminium or "aluminium (painted)": for the heat estimate
 
 Put the mounting holes over the box's bosses with board.mounting_holes.positions (board coordinates), or import
-the box maker's DXF of the PCB outline. WholeBoard checks that the board and its tallest part fit, then draws a
+the box maker's DXF of the PCB outline. OpenFabro checks that the board and its tallest part fit, then draws a
 1:1 template for each wall that needs openings (connectors at the edges) and for the lid (LEDs, buttons).
 """
 

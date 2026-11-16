@@ -131,8 +131,11 @@ class AuthMiddleware:
         self.app = app
 
     async def __call__(self, scope, receive, send):
+        from . import collaboration
+        actor = scope.get("wb_identity") or {}
+        account_shell = collaboration.enabled() and (scope.get("path") == "/" or scope.get("path", "").startswith(("/assets/", "/static/", "/api/workbench/session")))
         if scope["type"] not in ("http", "websocket") or not enabled() or is_local(scope) \
-                or scope.get("path") in OPEN_PATHS or valid_token(_cookie(scope)):
+                or scope.get("path") in OPEN_PATHS or valid_token(_cookie(scope)) or actor.get("mode") in ("account", "share") or account_shell:
             return await self.app(scope, receive, send)
         if scope["type"] == "websocket":
             await send({"type": "websocket.close", "code": 4401})
@@ -151,10 +154,10 @@ class AuthMiddleware:
 def login_page(error: str = "") -> str:
     err = f'<p class="err">{html.escape(error)}</p>' if error else ""
     return f"""<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>WholeBoard login</title><link rel="icon" href="/static/icon.svg"><link rel="stylesheet" href="/static/style.css">
+<title>OpenFabro login</title><link rel="icon" href="/static/icon.svg"><link rel="stylesheet" href="/static/style.css">
 <style>.login{{max-width:360px;margin:12vh auto;padding:24px;display:grid;gap:12px}}.login input{{padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--text)}}</style>
 </head><body><form class="login card" method="post" action="/api/login">
-<h2>WholeBoard</h2><p class="muted">This WholeBoard is password protected. Enter the password set on the computer running it.</p>
+<h2>OpenFabro</h2><p class="muted">This OpenFabro is password protected. Enter the password set on the computer running it.</p>
 {err}<input type="password" name="password" autofocus autocomplete="current-password" placeholder="Password">
 <button class="btn primary" type="submit">Log in</button></form>
 <script>try{{const t=localStorage.getItem("wb-theme");if(t)document.documentElement.dataset.theme=t}}catch(e){{}}</script></body></html>"""

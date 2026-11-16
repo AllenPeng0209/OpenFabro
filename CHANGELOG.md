@@ -1,7 +1,30 @@
 # Changelog
 
-Notable changes to WholeBoard. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
-WholeBoard has no releases yet, so changes are grouped by date.
+Notable changes to OpenFabro. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+OpenFabro has no releases yet, so changes are grouped by date.
+
+## 2026-11-16 — Public developer preview
+
+### Added
+
+- Publish the OpenFabro source, preserving the WholeBoard engineering foundation and GPL license.
+- Document the integrated electrical and mechanical workbench, guarded AI proposals, local files,
+  and production handoff workflow in a new English project README.
+- Add contribution and security guides, third-party attribution, issue forms, and a pull request template.
+- Add automated Python, JavaScript, installed-package, and documentation checks.
+
+### Changed
+
+- Exclude local credentials, projects, build output, internal work logs, reference captures, and
+  separate research experiments from the published source.
+- Point package and documentation metadata to the OpenFabro repository, scope default Python test
+  discovery to the application suite, and include all JavaScript unit test files.
+
+## 2026-11-12 — OpenFabro
+
+- Rebrand the product, documentation, interfaces and distribution as OpenFabro, the open-source AI hardware engineer for circuits, enclosures and complete devices.
+- Add the Fabro mascot with its dedicated AI engineering probe.
+- Add public `openfabro` module and command entry points while preserving legacy launch commands, settings and projects.
 
 ## Unreleased
 
@@ -11,21 +34,21 @@ WholeBoard has no releases yet, so changes are grouped by date.
   project, the files for JLCPCB, renders, enclosure, firmware and a README. Publishing again adds the latest
   build as a new commit. Uses the GitHub CLI's sign-in, or a token in *Settings → GitHub*.
 - Design with Claude Code: the MCP server (`python -m wholeboard.mcp`) now has the designer's tools, so Claude Code
-  can design a board on your Claude plan while WholeBoard builds it and shows each step live. It starts or opens a
-  board, records your answers, and gets messages typed in WholeBoard's chat with its next step.
+  can design a board on your Claude plan while OpenFabro builds it and shows each step live. It starts or opens a
+  board, records your answers, and gets messages typed in OpenFabro's chat with its next step.
 - *Live view* (in the board's header, or press L): the schematic, the board and the 3D render side by side above
   the steps, each replaced as soon as a newer one is made, with TraceMaker's live router in the board view while it
   routes.
 - A *Design with Claude Code* screen (from the home page, Workbench setup and Settings → AI) with the steps to
-  set it up: the line that adds WholeBoard to Claude Code for this computer, a button that runs it, and whether
-  Claude Code is installed and has WholeBoard yet.
+  set it up: the line that adds OpenFabro to Claude Code for this computer, a button that runs it, and whether
+  Claude Code is installed and has OpenFabro yet.
 - Documentation site (MkDocs Material) with tutorials, how-to guides, generated reference pages, explanation,
-  standards and sources, and decision records. Published to GitHub Pages.
+  standards and sources, and decision records. Built in CI as a downloadable site artifact.
 - Clear the boards list without deleting any boards, and show the cleared boards again.
 - Zoom the whole interface from the top bar (50–200 %, also Ctrl+Alt with + / − / 0).
 - Drag handles to resize the board description and chat message boxes.
 - Search for local models in Settings: finds Ollama, LM Studio, llama.cpp, Strata, vLLM, Jan and other
-  OpenAI-compatible servers on the computer running WholeBoard, shows each chat model with its size, context
+  OpenAI-compatible servers on the computer running OpenFabro, shows each chat model with its size, context
   and tool-calling support, and fills in the settings for the one picked.
 - Search the LAN for model servers: checks every address in the subnet the computer is on (a subnet larger than a
   /22 is narrowed to the /24 around it), only within the private ranges.

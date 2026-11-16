@@ -10,7 +10,7 @@ a PlatformIO project (Arduino framework).
 ## Compile
 
 Press *Compile with PlatformIO* on the firmware card. It offers to install PlatformIO the first time; or install it
-with `python -m wholeboard.doctor --install platformio`. From a terminal: `pio run` in the firmware folder.
+with `python -m openfabro.doctor --install platformio`. From a terminal: `pio run` in the firmware folder.
 
 ## Flash
 

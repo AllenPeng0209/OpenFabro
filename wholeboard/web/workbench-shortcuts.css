@@ -1,0 +1,19 @@
+.shortcuts-dialog{width:800px;max-width:calc(100vw - 32px);padding:22px;overflow:hidden}
+.shortcut-toolbar{display:flex;gap:9px;margin:18px 0;flex-shrink:0}
+.shortcut-search{display:flex;align-items:center;gap:8px;flex:1;min-width:0;background:#222;border:1px solid #4c4c4c;border-radius:4px;padding:0 10px}
+.shortcut-search .icon{width:16px;color:#9c9c9c;flex-shrink:0}
+.shortcut-search input{min-width:0;width:100%;padding:9px 0;border:0;background:transparent;outline:none;color:#eee;font:inherit;font-size:12px}
+.shortcut-toolbar select{padding:7px 8px;font-size:11px;min-width:0;color:#ccc;background:#333;border:1px solid #505050;border-radius:4px}
+.shortcut-list{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px 30px;max-height:calc(100dvh - 250px);overflow:auto;align-items:start;padding-right:5px}
+.shortcut-group{min-width:0}
+.shortcut-group h3{font-size:12px;font-weight:500;color:#a4a4a4;text-transform:uppercase;letter-spacing:.04em;margin:0 0 9px;padding-bottom:8px;border-bottom:1px solid #444}
+.shortcut-row{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;min-height:36px;padding:5px 0;line-height:1.4}
+.shortcut-row>span:first-child{min-width:0}
+.shortcut-row small{display:block;font-size:10px;color:#999;margin-top:3px}
+.shortcut-keys{display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-end;gap:3px;max-width:60%;flex-shrink:0}
+.shortcut-keys kbd{display:inline-flex;align-items:center;justify-content:center;min-width:22px;min-height:23px;padding:2px 5px;border:1px solid #575757;border-radius:3px;background:#353535;color:#dedede;font-family:inherit;font-size:11px;white-space:nowrap}
+.shortcut-plus,.shortcut-or{font-size:10px;color:#898989}
+.shortcut-or{margin:0 3px}
+.shortcut-empty{grid-column:1/-1;text-align:center;padding:35px 0;color:#aaa;font-size:13px}
+.shortcut-footer{font-size:11px;color:#999;border-top:1px solid #444;margin:18px 0 0;padding-top:12px}
+@media(max-width:650px){.shortcuts-dialog{padding:17px}.shortcut-toolbar{flex-wrap:wrap}.shortcut-search{flex-basis:100%}.shortcut-toolbar select{flex:1}.shortcut-list{grid-template-columns:minmax(0,1fr);max-height:calc(100dvh - 300px)}.shortcut-row{font-size:12px}}

@@ -1,0 +1,25 @@
+{
+  "name":"interface_preset_qa",
+  "board":{"width_mm":40,"height_mm":30,"layers":2,"ground_pour":null},
+  "components":[
+    {"ref":"J1","value":"Interface fixture","symbol":"Project:Interface","footprint":"Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical","placement":{"x_mm":5,"y_mm":5}},
+    {"ref":"J2","value":"Peer","symbol":"Connector_Generic:Conn_01x04","footprint":"Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical","placement":{"x_mm":25,"y_mm":5}}
+  ],
+  "nets":[
+    {"name":"USB_DP","class":"signal","pins":["J1.1","J2.1"]},
+    {"name":"USB_DN","class":"signal","pins":["J1.2","J2.2"]},
+    {"name":"VBUS","class":"power","pins":["J1.3","J2.3"]},
+    {"name":"GND","class":"power","pins":["J1.4","J2.4"]}
+  ],
+  "fixed_copper":[
+    {"net":"USB_DP","tracks":[{"id":"11111111-1111-4111-8111-000000000001","a":[5,5],"b":[25,5],"w":0.25,"layer":"F.Cu"}]},
+    {"net":"USB_DN","tracks":[{"id":"11111111-1111-4111-8111-000000000002","a":[5,7.54],"b":[25,7.54],"w":0.25,"layer":"F.Cu"}]}
+  ],
+  "editor":{"positions":{"J1":[300,300],"J2":[700,300]}},
+  "library":{"symbols":{"Interface":{"name":"Interface","reference":"J","pins":[
+    {"number":"1","name":"D+","x":-5.08,"y":0,"angle":0,"type":"passive"},
+    {"number":"2","name":"D-","x":-5.08,"y":-2.54,"angle":0,"type":"passive"},
+    {"number":"3","name":"VBUS","x":-5.08,"y":-5.08,"angle":0,"type":"power_in"},
+    {"number":"4","name":"GND","x":-5.08,"y":-7.62,"angle":0,"type":"power_in"}
+  ],"graphics":[{"kind":"rectangle","start":[-2.54,2.54],"end":[2.54,-10.16]}]}},"footprints":{},"parts":{}}
+}

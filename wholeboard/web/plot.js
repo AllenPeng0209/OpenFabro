@@ -17,9 +17,16 @@ class Plot {
     this.canvas.addEventListener("mouseleave", () => { this.tip.hidden = true; this.draw(); });
     this.ro = new ResizeObserver(() => this.draw());
     this.ro.observe(host);
-    window.addEventListener("wb-theme", () => { this.makeLegend(); this.draw(); });
-    window.addEventListener("wb-zoom", () => this.draw());
+    this._onTheme = () => { this.makeLegend(); this.draw(); };
+    this._onZoom = () => this.draw();
+    window.addEventListener("wb-theme", this._onTheme);
+    window.addEventListener("wb-zoom", this._onZoom);
     this.makeLegend();
+  }
+
+  destroy() {
+    this.ro.disconnect(); window.removeEventListener("wb-theme", this._onTheme); window.removeEventListener("wb-zoom", this._onZoom);
+    this.canvas.remove(); this.legend.remove(); this.tip.remove();
   }
 
   colours() {
@@ -124,3 +131,4 @@ function fmtTime(t, span) {
   if (span >= 2e-3) return +(t * 1e3).toPrecision(4) + " ms";
   return +(t * 1e6).toPrecision(4) + " µs";
 }
+window.Plot = Plot;

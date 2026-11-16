@@ -3,9 +3,9 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "wholeboard"
+name = "openfabro"
 version = "0.1.0"
-description = "AI PCB design workbench: describe a board, get it designed in KiCad, routed by TraceMaker and quoted at JLCPCB"
+description = "The open-source AI hardware engineer for circuits, enclosures and complete devices"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "GPL-3.0-or-later" }
@@ -17,17 +17,36 @@ dependencies = [
   "uvicorn[standard]>=0.29",
   "reportlab>=4.0",
   "pypdf>=4.0",
+  "shapely>=2.1,<3",
+  "Pillow>=10",
+  "numpy>=1.26,<3",
+  "trimesh>=4.12,<5",
+  "ezdxf>=1.4.5,<2",
+  "svgelements>=1.9.6,<2",
+  "defusedxml>=0.7,<1",
+  "cadquery-ocp-novtk>=7.8.1.1.post1,<9",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "httpx>=0.27,<1"]
 docs = ["mkdocs>=1.6,<2", "mkdocs-material>=9.5", "mkdocstrings[python]>=0.26", "mkdocs-gen-files>=0.5"]
 
+[project.urls]
+Homepage = "https://github.com/AllenPeng0209/OpenFabro"
+Documentation = "https://github.com/AllenPeng0209/OpenFabro/tree/main/docs"
+Repository = "https://github.com/AllenPeng0209/OpenFabro"
+Issues = "https://github.com/AllenPeng0209/OpenFabro/issues"
+Changelog = "https://github.com/AllenPeng0209/OpenFabro/blob/main/CHANGELOG.md"
+
 [project.scripts]
+openfabro = "wholeboard.__main__:main"
 wholeboard = "wholeboard.__main__:main"
 
 [tool.setuptools.packages.find]
-include = ["wholeboard*"]
+include = ["openfabro*", "wholeboard*"]
 
 [tool.setuptools.package-data]
-wholeboard = ["web/*", "jlc/pricing.json"]
+wholeboard = ["web/*", "web/fonts/*", "web/vendor/*", "jlc/pricing.json", "jlc/capabilities.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

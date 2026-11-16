@@ -16,7 +16,7 @@ wall, floor and standoff height:
          "wall_mm": 2.5, "floor_mm": 2.5, "material": "ABS"}
 ```
 
-WholeBoard checks the board and its tallest parts fit, then draws 1:1 drilling templates (SVG, with a 50 mm scale
+OpenFabro checks the board and its tallest parts fit, then draws 1:1 drilling templates (SVG, with a 50 mm scale
 bar) for every wall with a connector and for lid holes over LEDs and buttons. Print them at 100 % and check the
 scale bar before drilling.
 

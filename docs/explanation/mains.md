@@ -1,11 +1,11 @@
 # Mains isolation
 
 A board that touches mains has two jobs: keep live and neutral from arcing to each other, and keep anything a
-person can touch from becoming live. WholeBoard checks both, from the design and from the finished copper.
+person can touch from becoming live. OpenFabro checks both, from the design and from the finished copper.
 
 ## Finding the mains side
 
-The design names the nets that carry the full mains voltage (`mains.nets`). From there WholeBoard floods outwards:
+The design names the nets that carry the full mains voltage (`mains.nets`). From there OpenFabro floods outwards:
 any part on a mains net that is **not** an isolation barrier puts its other nets on the mains side too. A resistor
 from live, the optocoupler's LED behind it, the input of a supply module: all mains side.
 
@@ -28,7 +28,7 @@ more than many parts' pin spacing.
 ## Slots
 
 Creepage follows the surface, so cutting through the board makes it longer: the path has to go round. When a
-barrier part's mains pins and low-voltage pins are closer than the creepage, WholeBoard cuts a 1 mm milled slot
+barrier part's mains pins and low-voltage pins are closer than the creepage, OpenFabro cuts a 1 mm milled slot
 between them (unless the part says `"slot": false`). The creepage check then measures round it: a shortest path
 through the corners of every slot in the way.
 

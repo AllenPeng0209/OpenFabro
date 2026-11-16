@@ -1,0 +1,217 @@
+{
+  "name": "selective_routing_repair",
+  "board": {
+    "width_mm": 18,
+    "height_mm": 16,
+    "layers": 2,
+    "ground_pour": null
+  },
+  "rules": {
+    "track_mm": 0.15,
+    "clearance_mm": 0.15,
+    "via_diameter_mm": 0.6,
+    "via_drill_mm": 0.3,
+    "edge_clearance_mm": 0.2
+  },
+  "components": [
+    {
+      "ref": "TP1",
+      "value": "Bare test pad",
+      "symbol": "Connector:TestPoint",
+      "footprint": "Project:PadA",
+      "placement": {
+        "x_mm": 8,
+        "y_mm": 8
+      }
+    },
+    {
+      "ref": "TP2",
+      "value": "Bare test pad",
+      "symbol": "Connector:TestPoint",
+      "footprint": "Project:PadA",
+      "placement": {
+        "x_mm": 13,
+        "y_mm": 8
+      }
+    },
+    {
+      "ref": "TP3",
+      "value": "Bare test pad",
+      "symbol": "Connector:TestPoint",
+      "footprint": "Project:PadB",
+      "placement": {
+        "x_mm": 6,
+        "y_mm": 8.45
+      }
+    },
+    {
+      "ref": "TP4",
+      "value": "Bare test pad",
+      "symbol": "Connector:TestPoint",
+      "footprint": "Project:PadB",
+      "placement": {
+        "x_mm": 6,
+        "y_mm": 7.55
+      }
+    }
+  ],
+  "nets": [
+    {
+      "name": "SIGNAL",
+      "pins": [
+        "TP1.1",
+        "TP2.1"
+      ]
+    },
+    {
+      "name": "BLOCKER",
+      "pins": [
+        "TP3.1",
+        "TP4.1"
+      ]
+    }
+  ],
+  "library": {
+    "footprints": {
+      "PadA": {
+        "name": "PadA",
+        "mount": "smd",
+        "height_mm": 0.035,
+        "courtyard": [
+          -0.31,
+          -0.31,
+          0.31,
+          0.31
+        ],
+        "graphics": [],
+        "pads": [
+          {
+            "name": "1",
+            "kind": "smd",
+            "shape": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 0.6,
+            "h": 0.6,
+            "layer": "F.Cu",
+            "paste": false
+          }
+        ]
+      },
+      "PadB": {
+        "name": "PadB",
+        "mount": "smd",
+        "height_mm": 0.035,
+        "courtyard": [
+          -0.41000000000000003,
+          -0.31,
+          0.41000000000000003,
+          0.31
+        ],
+        "graphics": [],
+        "pads": [
+          {
+            "name": "1",
+            "kind": "smd",
+            "shape": "rect",
+            "x": 0,
+            "y": 0,
+            "w": 0.8,
+            "h": 0.6,
+            "layer": "F.Cu",
+            "paste": false
+          }
+        ]
+      }
+    }
+  },
+  "fixed_zones": [
+    {
+      "net": "",
+      "origin": [
+        100,
+        100
+      ],
+      "source": "(zone (net 0) (layers \"F.Cu\" \"B.Cu\") (uuid \"99999999-9999-4999-8999-000000000001\") (hatch edge 0.5) (keepout (tracks allowed) (vias not_allowed) (pads allowed) (copperpour allowed) (footprints allowed)) (polygon (pts (xy 100.2 100.2) (xy 117.8 100.2) (xy 117.8 115.8) (xy 100.2 115.8))))"
+    }
+  ],
+  "fixed_copper": [
+    {
+      "net": "BLOCKER",
+      "tracks": [
+        {
+          "id": "88888888-8888-4888-8888-000000000001",
+          "a": [
+            6,
+            7.55
+          ],
+          "b": [
+            6,
+            6
+          ],
+          "w": 0.15,
+          "layer": "F.Cu",
+          "locked": false
+        },
+        {
+          "id": "88888888-8888-4888-8888-000000000002",
+          "a": [
+            6,
+            6
+          ],
+          "b": [
+            10,
+            6
+          ],
+          "w": 0.15,
+          "layer": "F.Cu",
+          "locked": false
+        },
+        {
+          "id": "88888888-8888-4888-8888-000000000003",
+          "a": [
+            10,
+            6
+          ],
+          "b": [
+            10,
+            10
+          ],
+          "w": 0.15,
+          "layer": "F.Cu",
+          "locked": false
+        },
+        {
+          "id": "88888888-8888-4888-8888-000000000004",
+          "a": [
+            10,
+            10
+          ],
+          "b": [
+            6,
+            10
+          ],
+          "w": 0.15,
+          "layer": "F.Cu",
+          "locked": false
+        },
+        {
+          "id": "88888888-8888-4888-8888-000000000005",
+          "a": [
+            6,
+            10
+          ],
+          "b": [
+            6,
+            8.45
+          ],
+          "w": 0.15,
+          "layer": "F.Cu",
+          "locked": false
+        }
+      ],
+      "arcs": [],
+      "vias": []
+    }
+  ]
+}

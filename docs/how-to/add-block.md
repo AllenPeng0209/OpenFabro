@@ -1,7 +1,7 @@
 # Add your own building block
 
 A building block is a tested sub-circuit the designer drops into a design whole. To add your own, save it as a
-JSON file in `~/.wholeboard/blocks/` (one block per file). It appears in the designer's `list_blocks` straight
+JSON file in `~/.openfabro/blocks/` (one block per file). It appears in the designer's `list_blocks` straight
 away, next to the [built-in blocks](../reference/blocks.md); a file with the same `id` as a built-in block
 replaces it.
 

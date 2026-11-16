@@ -27,7 +27,7 @@ A finished board opens on its summary.
 side by side. Each one changes as soon as a newer one is made: the board shows the footprints, then the placed
 parts with their air wires, then TraceMaker routing it live, then the finished copper and pour. A spinner marks
 the one being worked on. During a rebuild, views the build hasn't reached yet are dimmed and marked *from the last
-build*. Click a view's name to open its step. Drag the strip's bottom-right corner to make it taller. WholeBoard
+build*. Click a view's name to open its step. Drag the strip's bottom-right corner to make it taller. OpenFabro
 remembers whether it is on, in this browser.
 
 ## Chat
@@ -53,7 +53,7 @@ for a desktop notification as well.
 
 ## Keyboard shortcuts
 
-Press **?** to see these in WholeBoard.
+Press **?** to see these in OpenFabro.
 
 | Keys | |
 |---|---|

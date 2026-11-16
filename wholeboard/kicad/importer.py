@@ -1,4 +1,4 @@
-"""Turn an existing KiCad project (schematic, and the board if there is one) into a WholeBoard spec.
+"""Turn an existing KiCad project (schematic, and the board if there is one) into a OpenFabro spec.
 
 The schematic's netlist gives the parts and connections; the board, when present, gives the
 outline, layer count, mounting holes and where each part sits (used as placement hints).
@@ -195,7 +195,7 @@ def to_spec(folder: Path, name: str = "", log=print) -> dict:
                 w, h = board["width_mm"], board["height_mm"]
                 inset = min(min(x, y, w - x, h - y) for x, y, _ in holes)
                 board["mounting_holes"] = {"diameter_mm": holes[0][2], "inset_mm": round(max(inset, 2.0), 2)}
-                notes.append(f"{len(holes)} mounting holes found; WholeBoard puts them in the corners "
+                notes.append(f"{len(holes)} mounting holes found; OpenFabro puts them in the corners "
                              f"{board['mounting_holes']['inset_mm']} mm in.")
         else:
             notes.append("The board has no Edge.Cuts outline, so the size is a guess.")

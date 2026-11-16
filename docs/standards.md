@@ -1,11 +1,11 @@
 # Standards and sources
 
-Every engineering figure and outside price WholeBoard relies on, where it comes from, where it lives in the code,
+Every engineering figure and outside price OpenFabro relies on, where it comes from, where it lives in the code,
 and when it was last checked. When a source changes, update the code and the date here.
 
 !!! note "Checking a figure"
     The tables in [Mains requirements](reference/mains.md), [Interface profiles](reference/profiles.md) and
-    [JLCPCB limits](reference/jlc-limits.md) are generated from the code, so they always show what WholeBoard
+    [JLCPCB limits](reference/jlc-limits.md) are generated from the code, so they always show what OpenFabro
     actually uses. This page says where those numbers came from.
 
 ## Electrical safety

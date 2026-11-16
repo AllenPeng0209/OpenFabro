@@ -44,6 +44,7 @@ def _system_dirs() -> list[Path]:
     system = platform.system()
     if system == "Darwin":
         out += [Path("/Applications/KiCad/KiCad.app/Contents/SharedSupport/3dmodels"),
+                Path.home() / "Applications/KiCad/KiCad.app/Contents/SharedSupport/3dmodels",
                 Path.home() / "Library/Application Support/kicad/3dmodels"]
     elif system == "Windows":
         out += [Path(p) for p in sorted(glob.glob(r"C:\Program Files\KiCad\*\share\kicad\3dmodels"), reverse=True)]
@@ -78,7 +79,7 @@ def fetch(rel: str, timeout: float = 40) -> Path | None:
     for tag in TAGS:
         url = RAW.format(tag=tag, rel=urllib.request.quote(rel))
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "WholeBoard"}),
+            with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": "OpenFabro"}),
                                         timeout=timeout) as r:
                 data = r.read(MAX_BYTES + 1)
         except Exception:  # noqa: BLE001 - 404 on this tag, try the next
@@ -214,7 +215,7 @@ def easyeda_height(lcsc: str, download: bool = True, timeout: float = 30) -> flo
         return None
     entry = None
     try:
-        req = urllib.request.Request(EASYEDA_PART.format(lcsc=lcsc), headers={"User-Agent": "WholeBoard"})
+        req = urllib.request.Request(EASYEDA_PART.format(lcsc=lcsc), headers={"User-Agent": "OpenFabro"})
         with urllib.request.urlopen(req, timeout=timeout) as r:
             data = json.loads(r.read())
         shapes = (((data.get("result") or {}).get("packageDetail") or {}).get("dataStr") or {}).get("shape") or []
@@ -244,7 +245,7 @@ def _obj_height(uuid: str, timeout: float) -> float | None:
     if not re.fullmatch(r"[0-9a-f]{32}", uuid):
         return None
     with urllib.request.urlopen(urllib.request.Request(EASYEDA_OBJ.format(uuid=uuid),
-                                                       headers={"User-Agent": "WholeBoard"}), timeout=timeout) as r:
+                                                       headers={"User-Agent": "OpenFabro"}), timeout=timeout) as r:
         text = r.read(MAX_BYTES).decode("latin-1")
     zs = [float(line.split()[3]) for line in text.splitlines() if line.startswith("v ") and len(line.split()) >= 4]
     if not zs:

@@ -1,7 +1,7 @@
-# WholeBoard installer for Windows 10/11. Run install.bat (it starts this script).
+# OpenFabro installer for Windows 10/11. Run install.bat (it starts this script).
 #
 # Installs with winget: Python 3.12, Git, KiCad and FreeCAD.
-# Sets up WholeBoard's Python packages in .venv, installs TraceMaker inside WSL (TraceMaker
+# Sets up OpenFabro's Python packages in .venv, installs TraceMaker inside WSL (TraceMaker
 # runs on Linux), fetches KiCad libraries if needed (and ngspice when KiCad's own copy is not
 # found), and adds a Start menu shortcut.
 #
@@ -28,7 +28,7 @@ function Winget-Install($id, $name) {
   winget install --id $id -e --accept-package-agreements --accept-source-agreements --silent
 }
 
-Say "Installing WholeBoard on Windows"
+Say "Installing OpenFabro on Windows"
 
 if (-not $NoSystem) {
   if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
@@ -55,7 +55,7 @@ foreach ($c in @(@("py", "-3.12"), @("py", "-3"), @("python"))) {
   } catch { }
 }
 if (-not $py) { Warn "Python 3.10 or newer was not found. Install it and run install.bat again."; exit 1 }
-Say "Setting up WholeBoard's Python environment"
+Say "Setting up OpenFabro's Python environment"
 $rest = Rest $py
 if (-not (Test-Path ".venv\Scripts\python.exe")) { & $py[0] @rest -m venv .venv }
 & .venv\Scripts\python -m pip install --upgrade pip | Out-Null
@@ -80,18 +80,18 @@ if (-not $wslOk) {
 
 # ------------------------------------------------------------------ TraceMaker, FreeCAD, libraries
 Say "Installing TraceMaker, FreeCAD, ngspice and KiCad libraries where they are missing"
-& .venv\Scripts\python -m wholeboard.doctor --install
+& .venv\Scripts\python -m openfabro.doctor --install
 
 # ------------------------------------------------------------------ shortcut
-$menu = Join-Path ([Environment]::GetFolderPath("Programs")) "WholeBoard.lnk"
+$menu = Join-Path ([Environment]::GetFolderPath("Programs")) "OpenFabro.lnk"
 $sh = New-Object -ComObject WScript.Shell
 $lnk = $sh.CreateShortcut($menu)
 $lnk.TargetPath = Join-Path $Here "run.bat"
 $lnk.WorkingDirectory = $Here
-$lnk.Description = "Describe a PCB and get it designed, routed, quoted and boxed"
+$lnk.Description = "The open-source AI hardware engineer for circuits, enclosures and complete devices"
 $lnk.Save()
 
 Say "Done"
-Write-Host "Start WholeBoard from the Start menu (WholeBoard) or with run.bat."
+Write-Host "Start OpenFabro from the Start menu (OpenFabro) or with run.bat."
 Write-Host "To use it from another computer on your network: run.bat --host 0.0.0.0"
-Write-Host "Then open Settings in WholeBoard to choose your AI (Claude, OpenAI, Grok or a local model)."
+Write-Host "Then open Settings in OpenFabro to choose your AI (Claude, OpenAI, Grok or a local model)."
